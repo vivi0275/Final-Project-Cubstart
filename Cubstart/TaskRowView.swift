@@ -18,6 +18,11 @@ struct TaskRowView: View {
             Button(action: {
                 task.toggleCompletion()
                 try? modelContext.save()
+                
+                // Synchroniser avec Firestore
+                Task {
+                    await TaskSyncService.shared.syncTaskToFirestore(task)
+                }
             }) {
                 Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
                     .foregroundColor(task.isCompleted ? .green : .gray)
@@ -116,6 +121,11 @@ struct TaskDetailView: View {
                         Button(action: {
                             task.toggleCompletion()
                             try? modelContext.save()
+                            
+                            // Synchroniser avec Firestore
+                            Task {
+                                await TaskSyncService.shared.syncTaskToFirestore(task)
+                            }
                         }) {
                             Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
                                 .font(.largeTitle)

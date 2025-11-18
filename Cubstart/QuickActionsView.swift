@@ -66,6 +66,11 @@ struct QuickActionsView: View {
         
         do {
             try modelContext.save()
+            
+            // Synchroniser avec Firestore
+            Task {
+                await TaskSyncService.shared.syncTaskToFirestore(task)
+            }
         } catch {
             print("Erreur lors de la sauvegarde: \(error)")
         }

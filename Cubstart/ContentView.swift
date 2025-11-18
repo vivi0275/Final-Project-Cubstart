@@ -230,6 +230,11 @@ struct ContentView: View {
                                     Button(task.isCompleted ? "Réactiver" : "Terminer") {
                                         task.toggleCompletion()
                                         try? modelContext.save()
+                                        
+                                        // Synchroniser avec Firestore
+                                        Task {
+                                            await TaskSyncService.shared.syncTaskToFirestore(task)
+                                        }
                                     }
                                     .tint(task.isCompleted ? .orange : .green)
                                 }
@@ -297,6 +302,11 @@ struct ContentView: View {
     
     private func deleteTask(_ task: NursingTask) {
         withAnimation {
+            // Supprimer de Firestore
+            Task {
+                await TaskSyncService.shared.deleteTaskFromFirestore(task)
+            }
+            
             modelContext.delete(task)
             try? modelContext.save()
         }
@@ -306,6 +316,11 @@ struct ContentView: View {
         withAnimation {
             for task in tasks where !task.isCompleted {
                 task.toggleCompletion()
+                
+                // Synchroniser chaque tâche avec Firestore
+                Task {
+                    await TaskSyncService.shared.syncTaskToFirestore(task)
+                }
             }
             try? modelContext.save()
         }
@@ -315,6 +330,11 @@ struct ContentView: View {
         withAnimation {
             let completedTasks = tasks.filter { $0.isCompleted }
             for task in completedTasks {
+                // Supprimer de Firestore
+                Task {
+                    await TaskSyncService.shared.deleteTaskFromFirestore(task)
+                }
+                
                 modelContext.delete(task)
             }
             try? modelContext.save()

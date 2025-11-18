@@ -104,9 +104,17 @@ struct AddTaskView: View {
         
         do {
             try modelContext.save()
+            print("✅ [AddTaskView] Tâche sauvegardée localement: \(newTask.title)")
+            
+            // Synchroniser avec Firestore
+            print("🔄 [AddTaskView] Démarrage de la synchronisation avec Firestore...")
+            Task {
+                await TaskSyncService.shared.syncTaskToFirestore(newTask)
+            }
+            
             dismiss()
         } catch {
-            print("Erreur lors de la sauvegarde: \(error)")
+            print("❌ [AddTaskView] Erreur lors de la sauvegarde locale: \(error)")
         }
     }
 }

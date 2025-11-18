@@ -92,3 +92,8 @@ iOSInjectionProject/
 # macOS
 .DS_Store
 
+# Firebase
+# Note: GoogleService-Info.plist contient des clés sensibles
+# En production, utilisez des variables d'environnement ou des secrets
+# GoogleService-Info.plist
+
