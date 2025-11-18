@@ -1,0 +1,68 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "🚀 Lancer iOS Simulator",
+            "type": "shell",
+            "command": "${workspaceFolder}/scripts/run-ios-simulator.sh",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": [],
+            "runOptions": {
+                "runOn": "default"
+            }
+        },
+        {
+            "label": "📱 Lancer sur iPhone physique",
+            "type": "shell",
+            "command": "${workspaceFolder}/scripts/run-ios-device.sh",
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": [],
+            "runOptions": {
+                "runOn": "default"
+            }
+        },
+        {
+            "label": "🔨 Builder iOS (sans lancer)",
+            "type": "shell",
+            "command": "xcodebuild",
+            "args": [
+                "-project",
+                "Cubstart.xcodeproj",
+                "-scheme",
+                "Cubstart",
+                "-destination",
+                "platform=iOS Simulator,name=iPhone 17 Pro",
+                "clean",
+                "build"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        }
+    ]
+}
+

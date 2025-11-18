@@ -1,0 +1,13 @@
+[
+    {
+        "key": "cmd+shift+r",
+        "command": "workbench.action.tasks.runTask",
+        "args": "🚀 Lancer iOS Simulator"
+    },
+    {
+        "key": "cmd+shift+d",
+        "command": "workbench.action.tasks.runTask",
+        "args": "📱 Lancer sur iPhone physique"
+    }
+]
+
