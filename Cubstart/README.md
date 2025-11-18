@@ -2,12 +2,12 @@
 //  README.md
 //  Application To-Do List pour Infirmières
 //  
-//  Cubstart - macOS
+//  Cubstart - iOS
 //
 
-# 🏥 Application To-Do List pour Infirmières
+# 🏥 Application To-Do List pour Infirmières iOS
 
-## ✅ Corrections appliquées pour le déploiement macOS
+## ✅ Conversion macOS vers iOS terminée
 
 ### Problèmes corrigés :
 

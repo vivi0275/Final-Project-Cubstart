@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct AddTaskView: View {
     @Environment(\.dismiss) private var dismiss
@@ -72,15 +73,14 @@ struct AddTaskView: View {
                 }
             }
             .navigationTitle("Nouvelle tâche")
-            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
+                ToolbarItem(placement: .cancellationAction) {
                     Button("Annuler") {
                         dismiss()
                     }
                 }
                 
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .confirmationAction) {
                     Button("Ajouter") {
                         addTask()
                     }

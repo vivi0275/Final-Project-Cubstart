@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct QuickActionsView: View {
     @Environment(\.modelContext) private var modelContext
@@ -32,7 +33,7 @@ struct QuickActionsView: View {
                     LazyVGrid(columns: [
                         GridItem(.flexible()),
                         GridItem(.flexible())
-                    ], spacing: 16) {
+                        ], spacing: 16) {
                         ForEach(quickTasks, id: \.title) { quickTask in
                             QuickTaskCard(quickTask: quickTask) {
                                 addQuickTask(quickTask)

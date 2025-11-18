@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct TaskRowView: View {
     @Environment(\.modelContext) private var modelContext
@@ -213,6 +214,6 @@ struct TaskDetailView: View {
         dueTime: Date().addingTimeInterval(3600)
     )
     
-    return TaskRowView(task: sampleTask)
+    TaskRowView(task: sampleTask)
         .modelContainer(for: NursingTask.self, inMemory: true)
 }
