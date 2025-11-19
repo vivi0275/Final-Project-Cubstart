@@ -23,17 +23,17 @@ struct AddTaskView: View {
     var body: some View {
         NavigationView {
             Form {
-                Section("Informations générales") {
-                    TextField("Titre de la tâche", text: $title)
+                Section("General Information") {
+                    TextField("Task title", text: $title)
                         .textFieldStyle(.roundedBorder)
                     
-                    TextField("Description (optionnel)", text: $taskDescription, axis: .vertical)
+                    TextField("Description (optional)", text: $taskDescription, axis: .vertical)
                         .textFieldStyle(.roundedBorder)
                         .lineLimit(3...6)
                 }
                 
-                Section("Catégorie") {
-                    Picker("Type d'activité", selection: $selectedCategory) {
+                Section("Category") {
+                    Picker("Activity type", selection: $selectedCategory) {
                         ForEach(TaskCategory.allCases, id: \.self) { category in
                             HStack {
                                 Image(systemName: category.systemImage)
@@ -45,8 +45,8 @@ struct AddTaskView: View {
                     }
                 }
                 
-                Section("Priorité") {
-                    Picker("Niveau de priorité", selection: $selectedPriority) {
+                Section("Priority") {
+                    Picker("Priority level", selection: $selectedPriority) {
                         ForEach(TaskPriority.allCases, id: \.self) { priority in
                             HStack {
                                 Image(systemName: priority.systemImage)
@@ -59,29 +59,29 @@ struct AddTaskView: View {
                     .pickerStyle(.segmented)
                 }
                 
-                Section("Patient (optionnel)") {
-                    TextField("ID ou nom du patient", text: $patientId)
+                Section("Patient (optional)") {
+                    TextField("Patient ID or name", text: $patientId)
                         .textFieldStyle(.roundedBorder)
                 }
                 
-                Section("Échéance") {
-                    Toggle("Définir une heure limite", isOn: $hasDueTime)
+                Section("Due Date") {
+                    Toggle("Set a deadline", isOn: $hasDueTime)
                     
                     if hasDueTime {
-                        DatePicker("Heure limite", selection: $dueTime, displayedComponents: [.date, .hourAndMinute])
+                        DatePicker("Deadline", selection: $dueTime, displayedComponents: [.date, .hourAndMinute])
                     }
                 }
             }
-            .navigationTitle("Nouvelle tâche")
+            .navigationTitle("New Task")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Annuler") {
+                    Button("Cancel") {
                         dismiss()
                     }
                 }
                 
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Ajouter") {
+                    Button("Add") {
                         addTask()
                     }
                     .disabled(title.isEmpty)
@@ -104,17 +104,17 @@ struct AddTaskView: View {
         
         do {
             try modelContext.save()
-            print("✅ [AddTaskView] Tâche sauvegardée localement: \(newTask.title)")
+            print("✅ [AddTaskView] Task saved locally: \(newTask.title)")
             
-            // Synchroniser avec Firestore
-            print("🔄 [AddTaskView] Démarrage de la synchronisation avec Firestore...")
+            // Sync with Firestore
+            print("🔄 [AddTaskView] Starting Firestore synchronization...")
             Task {
                 await TaskSyncService.shared.syncTaskToFirestore(newTask)
             }
             
             dismiss()
         } catch {
-            print("❌ [AddTaskView] Erreur lors de la sauvegarde locale: \(error)")
+            print("❌ [AddTaskView] Error saving locally: \(error)")
         }
     }
 }

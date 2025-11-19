@@ -16,9 +16,9 @@ class FirestoreService {
     
     private init() {}
     
-    // MARK: - Conversion entre NursingTask et Firestore
+    // MARK: - Conversion between NursingTask and Firestore
     
-    /// Convertit un NursingTask en dictionnaire pour Firestore
+    /// Converts a NursingTask to a dictionary for Firestore
     func taskToDictionary(_ task: NursingTask) -> [String: Any] {
         var dict: [String: Any] = [
             "id": task.id.uuidString,
@@ -45,7 +45,7 @@ class FirestoreService {
         return dict
     }
     
-    /// Crée un NursingTask à partir d'un document Firestore
+    /// Creates a NursingTask from a Firestore document
     func taskFromDictionary(_ dict: [String: Any]) -> NursingTask? {
         guard let idString = dict["id"] as? String,
               let id = UUID(uuidString: idString),
@@ -78,34 +78,34 @@ class FirestoreService {
         return task
     }
     
-    // MARK: - Opérations CRUD
+    // MARK: - CRUD Operations
     
-    /// Ajoute ou met à jour une tâche dans Firestore
+    /// Adds or updates a task in Firestore
     func saveTask(_ task: NursingTask) async throws {
-        print("🔥 [FirestoreService] Tentative de sauvegarde de la tâche: \(task.id.uuidString)")
-        print("🔥 [FirestoreService] Titre: \(task.title)")
+        print("🔥 [FirestoreService] Attempting to save task: \(task.id.uuidString)")
+        print("🔥 [FirestoreService] Title: \(task.title)")
         
         let taskDict = taskToDictionary(task)
-        print("🔥 [FirestoreService] Dictionnaire créé: \(taskDict)")
+        print("🔥 [FirestoreService] Dictionary created: \(taskDict)")
         print("🔥 [FirestoreService] Collection: \(collectionName)")
         print("🔥 [FirestoreService] Document ID: \(task.id.uuidString)")
         
         do {
             try await db.collection(collectionName).document(task.id.uuidString).setData(taskDict, merge: true)
-            print("✅ [FirestoreService] Tâche sauvegardée avec succès dans Firestore!")
+            print("✅ [FirestoreService] Task saved successfully to Firestore!")
         } catch {
-            print("❌ [FirestoreService] Erreur lors de la sauvegarde: \(error)")
-            print("❌ [FirestoreService] Détails: \(error.localizedDescription)")
+            print("❌ [FirestoreService] Error saving: \(error)")
+            print("❌ [FirestoreService] Details: \(error.localizedDescription)")
             throw error
         }
     }
     
-    /// Supprime une tâche de Firestore
+    /// Deletes a task from Firestore
     func deleteTask(_ task: NursingTask) async throws {
         try await db.collection(collectionName).document(task.id.uuidString).delete()
     }
     
-    /// Récupère toutes les tâches depuis Firestore
+    /// Fetches all tasks from Firestore
     func fetchAllTasks() async throws -> [NursingTask] {
         let snapshot = try await db.collection(collectionName).getDocuments()
         
@@ -120,11 +120,11 @@ class FirestoreService {
         return tasks
     }
     
-    /// Écoute les changements en temps réel dans Firestore
+    /// Listens to real-time changes in Firestore
     func observeTasks(completion: @escaping ([NursingTask]) -> Void) -> ListenerRegistration {
         return db.collection(collectionName).addSnapshotListener { snapshot, error in
             guard let documents = snapshot?.documents else {
-                print("Erreur lors de l'écoute Firestore: \(error?.localizedDescription ?? "Erreur inconnue")")
+                print("Error listening to Firestore: \(error?.localizedDescription ?? "Unknown error")")
                 return
             }
             
@@ -140,23 +140,23 @@ class FirestoreService {
         }
     }
     
-    /// Synchronise toutes les tâches locales avec Firestore
+    /// Synchronizes all local tasks with Firestore
     func syncTasks(_ localTasks: [NursingTask]) async throws {
-        // Récupérer les tâches depuis Firestore
+        // Fetch tasks from Firestore
         let remoteTasks = try await fetchAllTasks()
         let remoteTaskIds = Set(remoteTasks.map { $0.id.uuidString })
         
-        // Ajouter les tâches locales qui n'existent pas dans Firestore
+        // Add local tasks that don't exist in Firestore
         for localTask in localTasks {
             if !remoteTaskIds.contains(localTask.id.uuidString) {
                 try await saveTask(localTask)
             }
         }
         
-        // Mettre à jour les tâches qui existent dans les deux
+        // Update tasks that exist in both
         for localTask in localTasks {
             if let remoteTask = remoteTasks.first(where: { $0.id.uuidString == localTask.id.uuidString }) {
-                // Comparer les dates de modification pour déterminer quelle version est la plus récente
+                // Compare modification dates to determine which version is more recent
                 let localModified = localTask.completedAt ?? localTask.createdAt
                 let remoteModified = remoteTask.completedAt ?? remoteTask.createdAt
                 

@@ -14,12 +14,12 @@ struct TaskRowView: View {
     
     var body: some View {
         HStack(spacing: 12) {
-            // Bouton de completion
+            // Completion button
             Button(action: {
                 task.toggleCompletion()
                 try? modelContext.save()
                 
-                // Synchroniser avec Firestore
+                // Sync with Firestore
                 Task {
                     await TaskSyncService.shared.syncTaskToFirestore(task)
                 }
@@ -31,7 +31,7 @@ struct TaskRowView: View {
             .buttonStyle(PlainButtonStyle())
             
             VStack(alignment: .leading, spacing: 4) {
-                // Titre et catégorie
+                // Title and category
                 HStack {
                     Image(systemName: task.category.systemImage)
                         .foregroundColor(Color(task.category.color))
@@ -44,13 +44,13 @@ struct TaskRowView: View {
                     
                     Spacer()
                     
-                    // Indicateur de priorité
+                    // Priority indicator
                     Image(systemName: task.priority.systemImage)
                         .foregroundColor(Color(task.priority.color))
                         .font(.caption)
                 }
                 
-                // Description si présente
+                // Description if present
                 if !task.taskDescription.isEmpty {
                     Text(task.taskDescription)
                         .font(.caption)
@@ -58,7 +58,7 @@ struct TaskRowView: View {
                         .lineLimit(2)
                 }
                 
-                // Informations additionnelles
+                // Additional information
                 HStack(spacing: 8) {
                     Text(task.category.rawValue)
                         .font(.caption2)
@@ -101,7 +101,7 @@ struct TaskDetailView: View {
         NavigationView {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-                    // En-tête avec statut
+                    // Header with status
                     HStack {
                         VStack(alignment: .leading) {
                             Text(task.title)
@@ -122,7 +122,7 @@ struct TaskDetailView: View {
                             task.toggleCompletion()
                             try? modelContext.save()
                             
-                            // Synchroniser avec Firestore
+                            // Sync with Firestore
                             Task {
                                 await TaskSyncService.shared.syncTaskToFirestore(task)
                             }
@@ -135,7 +135,7 @@ struct TaskDetailView: View {
                     
                     Divider()
                     
-                    // Détails
+                    // Details
                     VStack(alignment: .leading, spacing: 16) {
                         if !task.taskDescription.isEmpty {
                             VStack(alignment: .leading, spacing: 4) {
@@ -148,7 +148,7 @@ struct TaskDetailView: View {
                         
                         HStack {
                             VStack(alignment: .leading) {
-                                Text("Priorité")
+                                Text("Priority")
                                     .font(.headline)
                                 HStack {
                                     Image(systemName: task.priority.systemImage)
@@ -171,7 +171,7 @@ struct TaskDetailView: View {
                         
                         if let dueTime = task.dueTime {
                             VStack(alignment: .leading) {
-                                Text("Échéance")
+                                Text("Due Date")
                                     .font(.headline)
                                 Text(dueTime, style: .date)
                                     .foregroundColor(dueTime < Date() && !task.isCompleted ? .red : .secondary)
@@ -181,7 +181,7 @@ struct TaskDetailView: View {
                         }
                         
                         VStack(alignment: .leading) {
-                            Text("Créée le")
+                            Text("Created on")
                                 .font(.headline)
                             Text(task.createdAt, style: .date)
                                 .foregroundColor(.secondary)
@@ -189,7 +189,7 @@ struct TaskDetailView: View {
                         
                         if let completedAt = task.completedAt {
                             VStack(alignment: .leading) {
-                                Text("Terminée le")
+                                Text("Completed on")
                                     .font(.headline)
                                 Text(completedAt, style: .date)
                                     .foregroundColor(.green)
@@ -201,11 +201,11 @@ struct TaskDetailView: View {
                 }
                 .padding()
             }
-            .navigationTitle("Détails")
+            .navigationTitle("Details")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Fermer") {
+                    Button("Close") {
                         dismiss()
                     }
                 }
@@ -216,8 +216,8 @@ struct TaskDetailView: View {
 
 #Preview {
     let sampleTask = NursingTask(
-        title: "Administrer médicament",
-        description: "Donner les médicaments du matin au patient de la chambre 12",
+        title: "Administer medication",
+        description: "Give morning medications to patient in room 12",
         priority: .important,
         category: .medication,
         patientId: "P-001",

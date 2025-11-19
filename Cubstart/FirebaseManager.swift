@@ -14,8 +14,8 @@ class FirebaseManager {
     private init() {}
     
     func configure() {
-        // Firebase sera configuré automatiquement via GoogleService-Info.plist
-        // Cette méthode peut être utilisée pour des configurations supplémentaires
+        // Firebase will be configured automatically via GoogleService-Info.plist
+        // This method can be used for additional configurations
         if FirebaseApp.app() == nil {
             FirebaseApp.configure()
         }

@@ -13,19 +13,19 @@ struct QuickActionsView: View {
     @Environment(\.dismiss) private var dismiss
     
     let quickTasks = [
-        QuickTask(title: "Prise de tension", category: .patientCare, priority: .normal),
-        QuickTask(title: "Distribution médicaments", category: .medication, priority: .important),
-        QuickTask(title: "Tournée des chambres", category: .rounds, priority: .normal),
-        QuickTask(title: "Mise à jour dossiers", category: .documentation, priority: .normal),
-        QuickTask(title: "Réunion équipe", category: .teamMeeting, priority: .normal),
-        QuickTask(title: "Formation continue", category: .training, priority: .normal)
+        QuickTask(title: "Blood pressure check", category: .patientCare, priority: .normal),
+        QuickTask(title: "Medication distribution", category: .medication, priority: .important),
+        QuickTask(title: "Room rounds", category: .rounds, priority: .normal),
+        QuickTask(title: "Update records", category: .documentation, priority: .normal),
+        QuickTask(title: "Team meeting", category: .teamMeeting, priority: .normal),
+        QuickTask(title: "Continuing education", category: .training, priority: .normal)
     ]
     
     var body: some View {
         NavigationView {
             ScrollView {
                 VStack(spacing: 20) {
-                    Text("Ajouter rapidement des tâches courantes")
+                    Text("Quickly add common tasks")
                         .font(.title2)
                         .multilineTextAlignment(.center)
                         .padding(.top)
@@ -43,11 +43,11 @@ struct QuickActionsView: View {
                     .padding(.horizontal)
                 }
             }
-            .navigationTitle("Actions rapides")
+            .navigationTitle("Quick Actions")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Fermer") {
+                    Button("Close") {
                         dismiss()
                     }
                 }
@@ -67,12 +67,12 @@ struct QuickActionsView: View {
         do {
             try modelContext.save()
             
-            // Synchroniser avec Firestore
+            // Sync with Firestore
             Task {
                 await TaskSyncService.shared.syncTaskToFirestore(task)
             }
         } catch {
-            print("Erreur lors de la sauvegarde: \(error)")
+            print("Error saving: \(error)")
         }
     }
 }

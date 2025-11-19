@@ -10,7 +10,7 @@ import SwiftData
 import FirebaseFirestore
 import FirebaseCore
 
-/// Service qui synchronise les tâches entre SwiftData (local) et Firestore (cloud)
+/// Service that synchronizes tasks between SwiftData (local) and Firestore (cloud)
 class TaskSyncService {
     static let shared = TaskSyncService()
     
@@ -19,24 +19,24 @@ class TaskSyncService {
     
     private init() {}
     
-    /// Configure la synchronisation avec Firestore
+    /// Configures synchronization with Firestore
     func startSyncing(modelContext: ModelContext) {
-        // Écouter les changements depuis Firestore
+        // Listen to changes from Firestore
         listener = firestoreService.observeTasks { [weak self] remoteTasks in
             Task { @MainActor in
                 self?.syncRemoteToLocal(remoteTasks, modelContext: modelContext)
             }
         }
-        print("✅ [TaskSyncService] Écoute Firestore démarrée")
+        print("✅ [TaskSyncService] Firestore listener started")
     }
     
-    /// Arrête la synchronisation
+    /// Stops synchronization
     func stopSyncing() {
         listener?.remove()
         listener = nil
     }
     
-    /// Synchronise les tâches distantes vers le stockage local (SwiftData)
+    /// Synchronizes remote tasks to local storage (SwiftData)
     private func syncRemoteToLocal(_ remoteTasks: [NursingTask], modelContext: ModelContext) {
         let descriptor = FetchDescriptor<NursingTask>()
         
@@ -44,10 +44,10 @@ class TaskSyncService {
             let localTasks = try modelContext.fetch(descriptor)
             let localTaskIds = Set(localTasks.map { $0.id.uuidString })
             
-            // Ajouter les nouvelles tâches depuis Firestore
+            // Add new tasks from Firestore
             for remoteTask in remoteTasks {
                 if !localTaskIds.contains(remoteTask.id.uuidString) {
-                    // Créer une nouvelle tâche locale à partir de la tâche distante
+                    // Create a new local task from the remote task
                     let newTask = NursingTask(
                         title: remoteTask.title,
                         description: remoteTask.taskDescription,
@@ -57,7 +57,7 @@ class TaskSyncService {
                         dueTime: remoteTask.dueTime
                     )
                     
-                    // Restaurer les propriétés
+                    // Restore properties
                     newTask.id = remoteTask.id
                     newTask.isCompleted = remoteTask.isCompleted
                     newTask.createdAt = remoteTask.createdAt
@@ -65,12 +65,12 @@ class TaskSyncService {
                     
                     modelContext.insert(newTask)
                 } else {
-                    // Mettre à jour la tâche existante si nécessaire
+                    // Update existing task if necessary
                     if let localTask = localTasks.first(where: { $0.id.uuidString == remoteTask.id.uuidString }) {
                         let localModified = localTask.completedAt ?? localTask.createdAt
                         let remoteModified = remoteTask.completedAt ?? remoteTask.createdAt
                         
-                        // Mettre à jour seulement si la version distante est plus récente
+                        // Update only if remote version is more recent
                         if remoteModified > localModified {
                             localTask.title = remoteTask.title
                             localTask.taskDescription = remoteTask.taskDescription
@@ -85,7 +85,7 @@ class TaskSyncService {
                 }
             }
             
-            // Supprimer les tâches locales qui n'existent plus dans Firestore
+            // Delete local tasks that no longer exist in Firestore
             for localTask in localTasks {
                 if !remoteTasks.contains(where: { $0.id.uuidString == localTask.id.uuidString }) {
                     modelContext.delete(localTask)
@@ -94,45 +94,45 @@ class TaskSyncService {
             
             try? modelContext.save()
         } catch {
-            print("Erreur lors de la synchronisation locale: \(error)")
+            print("Error during local synchronization: \(error)")
         }
     }
     
-    /// Synchronise une tâche locale vers Firestore
+    /// Synchronizes a local task to Firestore
     func syncTaskToFirestore(_ task: NursingTask) async {
-        print("🔄 [TaskSyncService] Début de la synchronisation de la tâche: \(task.title)")
+        print("🔄 [TaskSyncService] Starting task synchronization: \(task.title)")
         
-        // Vérifier que Firebase est initialisé
+        // Check that Firebase is initialized
         if FirebaseApp.app() == nil {
-            print("❌ [TaskSyncService] Firebase n'est pas initialisé!")
+            print("❌ [TaskSyncService] Firebase is not initialized!")
             return
         }
         
         do {
             try await firestoreService.saveTask(task)
-            print("✅ [TaskSyncService] Synchronisation réussie pour: \(task.title)")
+            print("✅ [TaskSyncService] Synchronization successful for: \(task.title)")
         } catch {
-            print("❌ [TaskSyncService] Erreur lors de la synchronisation vers Firestore")
-            print("❌ [TaskSyncService] Type d'erreur: \(type(of: error))")
+            print("❌ [TaskSyncService] Error synchronizing to Firestore")
+            print("❌ [TaskSyncService] Error type: \(type(of: error))")
             print("❌ [TaskSyncService] Message: \(error.localizedDescription)")
             if let nsError = error as NSError? {
-                print("❌ [TaskSyncService] Code d'erreur: \(nsError.code)")
-                print("❌ [TaskSyncService] Domaine: \(nsError.domain)")
+                print("❌ [TaskSyncService] Error code: \(nsError.code)")
+                print("❌ [TaskSyncService] Domain: \(nsError.domain)")
                 print("❌ [TaskSyncService] UserInfo: \(nsError.userInfo)")
             }
         }
     }
     
-    /// Supprime une tâche de Firestore
+    /// Deletes a task from Firestore
     func deleteTaskFromFirestore(_ task: NursingTask) async {
         do {
             try await firestoreService.deleteTask(task)
         } catch {
-            print("Erreur lors de la suppression dans Firestore: \(error)")
+            print("Error deleting from Firestore: \(error)")
         }
     }
     
-    /// Synchronise toutes les tâches locales vers Firestore
+    /// Synchronizes all local tasks to Firestore
     func syncAllToFirestore(modelContext: ModelContext) async {
         let descriptor = FetchDescriptor<NursingTask>()
         
@@ -143,9 +143,9 @@ class TaskSyncService {
                 try await firestoreService.saveTask(task)
             }
             
-            print("✅ Synchronisation complète vers Firestore terminée: \(localTasks.count) tâches")
+            print("✅ Complete synchronization to Firestore finished: \(localTasks.count) tasks")
         } catch {
-            print("Erreur lors de la synchronisation complète: \(error)")
+            print("Error during complete synchronization: \(error)")
         }
     }
 }

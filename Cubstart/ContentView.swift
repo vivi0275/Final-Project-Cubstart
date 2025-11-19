@@ -35,12 +35,12 @@ struct ContentView: View {
         }
         
         return filtered.sorted { task1, task2 in
-            // Tâches non complétées en premier
+            // Incomplete tasks first
             if task1.isCompleted != task2.isCompleted {
                 return !task1.isCompleted
             }
             
-            // Puis par priorité (urgent > important > normal)
+            // Then by priority (urgent > important > normal)
             let priority1Value = task1.priority == .urgent ? 3 : task1.priority == .important ? 2 : 1
             let priority2Value = task2.priority == .urgent ? 3 : task2.priority == .important ? 2 : 1
             
@@ -48,7 +48,7 @@ struct ContentView: View {
                 return priority1Value > priority2Value
             }
             
-            // Puis par échéance si présente
+            // Then by due date if present
             if let due1 = task1.dueTime, let due2 = task2.dueTime {
                 return due1 < due2
             }
@@ -61,7 +61,7 @@ struct ContentView: View {
                 return false
             }
             
-            // Finalement par date de création
+            // Finally by creation date
             return task1.createdAt > task2.createdAt
         }
     }
@@ -69,7 +69,7 @@ struct ContentView: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
-                // Statistiques rapides
+                // Quick statistics
                 if !tasks.isEmpty {
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 16) {
@@ -81,21 +81,21 @@ struct ContentView: View {
                             )
                             
                             StatCard(
-                                title: "En cours",
+                                title: "In Progress",
                                 count: tasks.filter { !$0.isCompleted }.count,
                                 color: .orange,
                                 systemImage: "clock"
                             )
                             
                             StatCard(
-                                title: "Terminées",
+                                title: "Completed",
                                 count: tasks.filter { $0.isCompleted }.count,
                                 color: .green,
                                 systemImage: "checkmark.circle"
                             )
                             
                             StatCard(
-                                title: "Urgentes",
+                                title: "Urgent",
                                 count: tasks.filter { $0.priority == .urgent && !$0.isCompleted }.count,
                                 color: .red,
                                 systemImage: "exclamationmark.triangle"
@@ -106,12 +106,12 @@ struct ContentView: View {
                     .padding(.vertical, 8)
                 }
                 
-                // Filtres
+                // Filters
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 12) {
-                        // Filtre par catégorie
+                        // Category filter
                         Menu {
-                            Button("Toutes les catégories") {
+                            Button("All Categories") {
                                 filterCategory = nil
                             }
                             
@@ -131,7 +131,7 @@ struct ContentView: View {
                         } label: {
                             HStack {
                                 Image(systemName: "line.3.horizontal.decrease.circle")
-                                Text(filterCategory?.rawValue ?? "Catégorie")
+                                Text(filterCategory?.rawValue ?? "Category")
                             }
                             .font(.caption)
                             .padding(.horizontal, 12)
@@ -140,9 +140,9 @@ struct ContentView: View {
                             .cornerRadius(8)
                         }
                         
-                        // Filtre par priorité
+                        // Priority filter
                         Menu {
-                            Button("Toutes les priorités") {
+                            Button("All Priorities") {
                                 filterPriority = nil
                             }
                             
@@ -162,7 +162,7 @@ struct ContentView: View {
                         } label: {
                             HStack {
                                 Image(systemName: "exclamationmark.circle")
-                                Text(filterPriority?.rawValue ?? "Priorité")
+                                Text(filterPriority?.rawValue ?? "Priority")
                             }
                             .font(.caption)
                             .padding(.horizontal, 12)
@@ -171,13 +171,13 @@ struct ContentView: View {
                             .cornerRadius(8)
                         }
                         
-                        // Toggle tâches complétées
+                        // Toggle completed tasks
                         Button(action: {
                             showCompletedTasks.toggle()
                         }) {
                             HStack {
                                 Image(systemName: showCompletedTasks ? "eye" : "eye.slash")
-                                Text("Terminées")
+                                Text("Completed")
                             }
                             .font(.caption)
                             .padding(.horizontal, 12)
@@ -191,7 +191,7 @@ struct ContentView: View {
                 }
                 .padding(.vertical, 8)
                 
-                // Liste des tâches
+                // Task list
                 if filteredTasks.isEmpty {
                     Spacer()
                     
@@ -200,13 +200,13 @@ struct ContentView: View {
                             .font(.system(size: 50))
                             .foregroundColor(.gray)
                         
-                        Text(tasks.isEmpty ? "Aucune tâche pour le moment" : "Aucune tâche ne correspond aux filtres")
+                        Text(tasks.isEmpty ? "No tasks yet" : "No tasks match the filters")
                             .font(.title2)
                             .foregroundColor(.gray)
                             .multilineTextAlignment(.center)
                         
                         if tasks.isEmpty {
-                            Text("Appuyez sur + pour ajouter votre première tâche")
+                            Text("Tap + to add your first task")
                                 .foregroundColor(.secondary)
                                 .multilineTextAlignment(.center)
                         }
@@ -222,16 +222,16 @@ struct ContentView: View {
                                     selectedTask = task
                                 }
                                 .swipeActions(edge: .trailing) {
-                                    Button("Supprimer", role: .destructive) {
+                                    Button("Delete", role: .destructive) {
                                         deleteTask(task)
                                     }
                                 }
                                 .swipeActions(edge: .leading) {
-                                    Button(task.isCompleted ? "Réactiver" : "Terminer") {
+                                    Button(task.isCompleted ? "Reactivate" : "Complete") {
                                         task.toggleCompletion()
                                         try? modelContext.save()
                                         
-                                        // Synchroniser avec Firestore
+                                        // Sync with Firestore
                                         Task {
                                             await TaskSyncService.shared.syncTaskToFirestore(task)
                                         }
@@ -243,22 +243,22 @@ struct ContentView: View {
                     .listStyle(.plain)
                 }
             }
-            .navigationTitle("Tâches Infirmière")
+            .navigationTitle("Nursing Tasks")
             .navigationBarTitleDisplayMode(.large)
-            .searchable(text: $searchText, prompt: "Rechercher une tâche...")
+            .searchable(text: $searchText, prompt: "Search for a task...")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Menu {
                         Button(action: {
                             showingAddTask = true
                         }) {
-                            Label("Nouvelle tâche", systemImage: "plus.circle")
+                            Label("New Task", systemImage: "plus.circle")
                         }
                         
                         Button(action: {
                             showingQuickActions = true
                         }) {
-                            Label("Actions rapides", systemImage: "bolt.circle")
+                            Label("Quick Actions", systemImage: "bolt.circle")
                         }
                     } label: {
                         Image(systemName: "plus")
@@ -268,18 +268,18 @@ struct ContentView: View {
                 
                 ToolbarItem(placement: .navigationBarLeading) {
                     Menu {
-                        Button("Marquer toutes comme terminées") {
+                        Button("Mark All as Completed") {
                             markAllAsCompleted()
                         }
                         
-                        Button("Supprimer les tâches terminées", role: .destructive) {
+                        Button("Delete Completed Tasks", role: .destructive) {
                             deleteCompletedTasks()
                         }
                         
                         Divider()
                         
-                        Button("Statistiques") {
-                            // TODO: Afficher les statistiques
+                        Button("Statistics") {
+                            // TODO: Show statistics
                         }
                     } label: {
                         Image(systemName: "ellipsis.circle")
@@ -297,12 +297,12 @@ struct ContentView: View {
                 TaskDetailView(task: task)
             }
         }
-        .navigationViewStyle(.stack) // Force le style stack pour iOS
+        .navigationViewStyle(.stack) // Force stack style for iOS
     }
     
     private func deleteTask(_ task: NursingTask) {
         withAnimation {
-            // Supprimer de Firestore
+            // Delete from Firestore
             Task {
                 await TaskSyncService.shared.deleteTaskFromFirestore(task)
             }
@@ -317,7 +317,7 @@ struct ContentView: View {
             for task in tasks where !task.isCompleted {
                 task.toggleCompletion()
                 
-                // Synchroniser chaque tâche avec Firestore
+                // Sync each task with Firestore
                 Task {
                     await TaskSyncService.shared.syncTaskToFirestore(task)
                 }
@@ -330,7 +330,7 @@ struct ContentView: View {
         withAnimation {
             let completedTasks = tasks.filter { $0.isCompleted }
             for task in completedTasks {
-                // Supprimer de Firestore
+                // Delete from Firestore
                 Task {
                     await TaskSyncService.shared.deleteTaskFromFirestore(task)
                 }

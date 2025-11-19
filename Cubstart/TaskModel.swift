@@ -70,14 +70,14 @@ enum TaskPriority: String, CaseIterable, Codable {
 }
 
 enum TaskCategory: String, CaseIterable, Codable {
-    case patientCare = "Soins patients"
-    case medication = "Médications"
+    case patientCare = "Patient Care"
+    case medication = "Medication"
     case documentation = "Documentation"
-    case rounds = "Tournées"
-    case emergency = "Urgences"
-    case training = "Formation"
-    case administrative = "Administratif"
-    case teamMeeting = "Réunion équipe"
+    case rounds = "Rounds"
+    case emergency = "Emergency"
+    case training = "Training"
+    case administrative = "Administrative"
+    case teamMeeting = "Team Meeting"
     
     var systemImage: String {
         switch self {

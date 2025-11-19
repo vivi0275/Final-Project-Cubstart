@@ -12,13 +12,13 @@ import FirebaseCore
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
-        print("🔥 [AppDelegate] Configuration de Firebase...")
+        print("🔥 [AppDelegate] Configuring Firebase...")
         FirebaseApp.configure()
         
         if FirebaseApp.app() != nil {
-            print("✅ [AppDelegate] Firebase configuré avec succès!")
+            print("✅ [AppDelegate] Firebase configured successfully!")
         } else {
-            print("❌ [AppDelegate] Erreur: Firebase n'a pas pu être configuré!")
+            print("❌ [AppDelegate] Error: Firebase could not be configured!")
         }
         
         return true
@@ -35,12 +35,33 @@ struct CubstartApp: App {
             NursingTask.self
         ])
         
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+        // Use a specific URL for the database to allow reset if needed
+        let url = URL.applicationSupportDirectory.appending(path: "Cubstart.sqlite")
+        let modelConfiguration = ModelConfiguration(schema: schema, url: url)
         
         do {
             return try ModelContainer(for: schema, configurations: [modelConfiguration])
         } catch {
-            fatalError("Could not create ModelContainer: \(error)")
+            // If there's an error, try to delete the old database and recreate
+            print("⚠️ [CubstartApp] Error creating ModelContainer: \(error)")
+            print("⚠️ [CubstartApp] Attempting to reset database...")
+            
+            // Delete the old database files
+            let fileManager = FileManager.default
+            let dbURL = url
+            let shmURL = url.appendingPathExtension("sqlite-shm")
+            let walURL = url.appendingPathExtension("sqlite-wal")
+            
+            try? fileManager.removeItem(at: dbURL)
+            try? fileManager.removeItem(at: shmURL)
+            try? fileManager.removeItem(at: walURL)
+            
+            // Try again with a fresh database
+            do {
+                return try ModelContainer(for: schema, configurations: [modelConfiguration])
+            } catch {
+                fatalError("Could not create ModelContainer: \(error)")
+            }
         }
     }()
     
@@ -49,24 +70,24 @@ struct CubstartApp: App {
             MainTabView()
                 .environment(\.modelContext, sharedModelContainer.mainContext)
                 .onAppear {
-                    print("🚀 [CubstartApp] Application démarrée, initialisation de la synchronisation Firestore...")
+                    print("🚀 [CubstartApp] Application started, initializing Firestore synchronization...")
                     
-                    // Vérifier que Firebase est initialisé
+                    // Check that Firebase is initialized
                     if FirebaseApp.app() == nil {
-                        print("❌ [CubstartApp] Firebase n'est pas initialisé! La synchronisation ne fonctionnera pas.")
+                        print("❌ [CubstartApp] Firebase is not initialized! Synchronization will not work.")
                         return
                     }
                     
-                    print("✅ [CubstartApp] Firebase est initialisé")
+                    print("✅ [CubstartApp] Firebase is initialized")
                     
-                    // Démarrer la synchronisation Firestore au démarrage de l'app
+                    // Start Firestore synchronization at app startup
                     let modelContext = sharedModelContainer.mainContext
-                    print("🔄 [CubstartApp] Démarrage de l'écoute Firestore...")
+                    print("🔄 [CubstartApp] Starting Firestore listener...")
                     TaskSyncService.shared.startSyncing(modelContext: modelContext)
                     
-                    // Synchroniser toutes les tâches locales vers Firestore au démarrage
+                    // Sync all local tasks to Firestore at startup
                     Task {
-                        print("🔄 [CubstartApp] Synchronisation initiale des tâches...")
+                        print("🔄 [CubstartApp] Initial task synchronization...")
                         await TaskSyncService.shared.syncAllToFirestore(modelContext: modelContext)
                     }
                 }

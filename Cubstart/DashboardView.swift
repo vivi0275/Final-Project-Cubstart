@@ -12,13 +12,12 @@ import Charts
 struct DashboardView: View {
     @Query private var tasks: [NursingTask]
     @State private var selectedTimeRange: TimeRange = .week
-    @State private var selectedChartType: ChartType = .byCategory
     
     enum TimeRange: String, CaseIterable {
-        case day = "Jour"
-        case week = "Semaine"
-        case month = "Mois"
-        case year = "Année"
+        case day = "Day"
+        case week = "Week"
+        case month = "Month"
+        case year = "Year"
         
         var days: Int {
             switch self {
@@ -30,12 +29,6 @@ struct DashboardView: View {
         }
     }
     
-    enum ChartType: String, CaseIterable {
-        case byCategory = "Par catégorie"
-        case byPriority = "Par priorité"
-        case timeline = "Évolution temporelle"
-        case completion = "Taux de complétion"
-    }
     
     var filteredTasks: [NursingTask] {
         let calendar = Calendar.current
@@ -98,85 +91,28 @@ struct DashboardView: View {
         NavigationView {
             ScrollView {
                 VStack(spacing: 24) {
-                    // Sélecteurs
-                    VStack(spacing: 16) {
-                        // Sélecteur de période
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Période")
-                                .font(.headline)
-                                .foregroundColor(.secondary)
-                            
-                            Picker("Période", selection: $selectedTimeRange) {
-                                ForEach(TimeRange.allCases, id: \.self) { range in
-                                    Text(range.rawValue).tag(range)
-                                }
-                            }
-                            .pickerStyle(.segmented)
-                        }
+                    // Time range selector
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Period")
+                            .font(.headline)
+                            .foregroundColor(.secondary)
                         
-                        // Sélecteur de type de graphique
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Type de graphique")
-                                .font(.headline)
-                                .foregroundColor(.secondary)
-                            
-                            Picker("Type", selection: $selectedChartType) {
-                                ForEach(ChartType.allCases, id: \.self) { type in
-                                    Text(type.rawValue).tag(type)
-                                }
+                        Picker("Period", selection: $selectedTimeRange) {
+                            ForEach(TimeRange.allCases, id: \.self) { range in
+                                Text(range.rawValue).tag(range)
                             }
-                            .pickerStyle(.segmented)
                         }
+                        .pickerStyle(.segmented)
                     }
                     .padding(.horizontal)
                     
-                    // Statistiques rapides
+                    // All charts displayed vertically
                     if !filteredTasks.isEmpty {
-                        HStack(spacing: 12) {
-                            DashboardStatCard(
-                                title: "Total",
-                                value: "\(filteredTasks.count)",
-                                color: .blue,
-                                icon: "list.bullet"
-                            )
-                            
-                            DashboardStatCard(
-                                title: "Terminées",
-                                value: "\(filteredTasks.filter { $0.isCompleted }.count)",
-                                color: .green,
-                                icon: "checkmark.circle.fill"
-                            )
-                            
-                            DashboardStatCard(
-                                title: "En cours",
-                                value: "\(filteredTasks.filter { !$0.isCompleted }.count)",
-                                color: .orange,
-                                icon: "clock.fill"
-                            )
-                            
-                            DashboardStatCard(
-                                title: "Taux",
-                                value: "\(Int(completionRate * 100))%",
-                                color: .purple,
-                                icon: "chart.bar.fill"
-                            )
-                        }
-                        .padding(.horizontal)
-                    }
-                    
-                    // Graphiques
-                    if !filteredTasks.isEmpty {
-                        VStack(spacing: 20) {
-                            switch selectedChartType {
-                            case .byCategory:
-                                categoryChart
-                            case .byPriority:
-                                priorityChart
-                            case .timeline:
-                                timelineChart
-                            case .completion:
-                                completionChart
-                            }
+                        VStack(spacing: 32) {
+                            categoryChart
+                            priorityChart
+                            timelineChart
+                            completionChart
                         }
                         .padding(.horizontal)
                     } else {
@@ -185,11 +121,11 @@ struct DashboardView: View {
                                 .font(.system(size: 50))
                                 .foregroundColor(.gray)
                             
-                            Text("Aucune donnée pour cette période")
+                            Text("No data for this period")
                                 .font(.title3)
                                 .foregroundColor(.secondary)
                             
-                            Text("Ajoutez des tâches pour voir les statistiques")
+                            Text("Add tasks to see statistics")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
@@ -203,18 +139,18 @@ struct DashboardView: View {
         }
     }
     
-    // Graphique par catégorie
+    // Category chart
     var categoryChart: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Activités par catégorie")
+            Text("Activities by Category")
                 .font(.headline)
                 .padding(.horizontal)
             
             Chart {
                 ForEach(tasksByCategory, id: \.category) { item in
                     BarMark(
-                        x: .value("Catégorie", item.category.rawValue),
-                        y: .value("Nombre", item.count)
+                        x: .value("Category", item.category.rawValue),
+                        y: .value("Count", item.count)
                     )
                     .foregroundStyle(Color(item.category.color).opacity(0.7))
                     .annotation(position: .top) {
@@ -230,7 +166,7 @@ struct DashboardView: View {
             .cornerRadius(12)
             .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 2)
             
-            // Légende avec détails
+            // Legend with details
             VStack(alignment: .leading, spacing: 8) {
                 ForEach(tasksByCategory, id: \.category) { item in
                     HStack {
@@ -253,18 +189,18 @@ struct DashboardView: View {
         }
     }
     
-    // Graphique par priorité
+    // Priority chart
     var priorityChart: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Activités par priorité")
+            Text("Activities by Priority")
                 .font(.headline)
                 .padding(.horizontal)
             
             Chart {
                 ForEach(tasksByPriority, id: \.priority) { item in
                     BarMark(
-                        x: .value("Priorité", item.priority.rawValue),
-                        y: .value("Nombre", item.count)
+                        x: .value("Priority", item.priority.rawValue),
+                        y: .value("Count", item.count)
                     )
                     .foregroundStyle(Color(item.priority.color).opacity(0.7))
                     .annotation(position: .top) {
@@ -280,7 +216,7 @@ struct DashboardView: View {
             .cornerRadius(12)
             .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 2)
             
-            // Légende
+            // Legend
             VStack(alignment: .leading, spacing: 8) {
                 ForEach(tasksByPriority, id: \.priority) { item in
                     HStack {
@@ -303,10 +239,10 @@ struct DashboardView: View {
         }
     }
     
-    // Graphique d'évolution temporelle
+    // Timeline chart
     var timelineChart: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Évolution temporelle")
+            Text("Timeline")
                 .font(.headline)
                 .padding(.horizontal)
             
@@ -314,14 +250,14 @@ struct DashboardView: View {
                 ForEach(Array(timelineData.enumerated()), id: \.offset) { index, data in
                     LineMark(
                         x: .value("Date", data.date, unit: .day),
-                        y: .value("Créées", data.created)
+                        y: .value("Created", data.created)
                     )
                     .foregroundStyle(.blue)
                     .interpolationMethod(.catmullRom)
                     
                     LineMark(
                         x: .value("Date", data.date, unit: .day),
-                        y: .value("Terminées", data.completed)
+                        y: .value("Completed", data.completed)
                     )
                     .foregroundStyle(.green)
                     .interpolationMethod(.catmullRom)
@@ -339,13 +275,13 @@ struct DashboardView: View {
             .cornerRadius(12)
             .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 2)
             
-            // Légende
+            // Legend
             HStack(spacing: 20) {
                 HStack {
                     Circle()
                         .fill(Color.blue)
                         .frame(width: 8, height: 8)
-                    Text("Créées")
+                    Text("Created")
                         .font(.caption)
                 }
                 
@@ -353,7 +289,7 @@ struct DashboardView: View {
                     Circle()
                         .fill(Color.green)
                         .frame(width: 8, height: 8)
-                    Text("Terminées")
+                    Text("Completed")
                         .font(.caption)
                 }
             }
@@ -361,15 +297,15 @@ struct DashboardView: View {
         }
     }
     
-    // Graphique de taux de complétion
+    // Completion rate chart
     var completionChart: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Taux de complétion")
+            Text("Completion Rate")
                 .font(.headline)
                 .padding(.horizontal)
             
             VStack(spacing: 20) {
-                // Graphique circulaire
+                // Circular chart
                 ZStack {
                     Circle()
                         .stroke(Color.gray.opacity(0.2), lineWidth: 20)
@@ -388,20 +324,20 @@ struct DashboardView: View {
                             .font(.system(size: 40, weight: .bold))
                             .foregroundColor(.green)
                         
-                        Text("complétées")
+                        Text("completed")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
                 }
                 .frame(width: 200, height: 200)
                 
-                // Détails
+                // Details
                 VStack(spacing: 12) {
                     HStack {
                         Circle()
                             .fill(Color.green)
                             .frame(width: 12, height: 12)
-                        Text("Terminées: \(filteredTasks.filter { $0.isCompleted }.count)")
+                        Text("Completed: \(filteredTasks.filter { $0.isCompleted }.count)")
                             .font(.subheadline)
                         Spacer()
                     }
@@ -410,7 +346,7 @@ struct DashboardView: View {
                         Circle()
                             .fill(Color.orange)
                             .frame(width: 12, height: 12)
-                        Text("En cours: \(filteredTasks.filter { !$0.isCompleted }.count)")
+                        Text("In Progress: \(filteredTasks.filter { !$0.isCompleted }.count)")
                             .font(.subheadline)
                         Spacer()
                     }
@@ -423,34 +359,6 @@ struct DashboardView: View {
             .cornerRadius(12)
             .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 2)
         }
-    }
-}
-
-struct DashboardStatCard: View {
-    let title: String
-    let value: String
-    let color: Color
-    let icon: String
-    
-    var body: some View {
-        VStack(spacing: 8) {
-            Image(systemName: icon)
-                .font(.title2)
-                .foregroundColor(color)
-            
-            Text(value)
-                .font(.title2)
-                .fontWeight(.bold)
-                .foregroundColor(.primary)
-            
-            Text(title)
-                .font(.caption)
-                .foregroundColor(.secondary)
-        }
-        .frame(maxWidth: .infinity)
-        .padding()
-        .background(color.opacity(0.1))
-        .cornerRadius(12)
     }
 }
 

@@ -15,7 +15,7 @@ struct MainTabView: View {
         TabView(selection: $selectedTab) {
             ContentView()
                 .tabItem {
-                    Label("Tâches", systemImage: "list.bullet")
+                    Label("Tasks", systemImage: "list.bullet")
                 }
                 .tag(0)
             
