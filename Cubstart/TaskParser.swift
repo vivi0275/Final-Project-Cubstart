@@ -46,17 +46,16 @@ class TaskParser {
             category = .teamMeeting
         }
         
-        // Extract patient ID (look for patterns like "patient P-001", "room 12", etc.)
+        // Extract patient ID
         var patientId: String? = nil
-        let patientPatterns = [
+        let patterns = [
             "patient\\s+([A-Z0-9-]+)",
             "room\\s+(\\d+)",
             "patient\\s+(\\d+)",
-            "P-?(\\d+)",
-            "patient\\s+([A-Z]\\d+)"
+            "P-?(\\d+)"
         ]
         
-        for pattern in patientPatterns {
+        for pattern in patterns {
             if let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) {
                 let nsString = lowercased as NSString
                 let range = NSRange(location: 0, length: nsString.length)
@@ -65,7 +64,6 @@ class TaskParser {
                     let patientRange = match.range(at: 1)
                     if patientRange.location != NSNotFound {
                         let extracted = nsString.substring(with: patientRange)
-                        // Format patient ID
                         if extracted.allSatisfy({ $0.isNumber }) {
                             patientId = "P-\(extracted)"
                         } else {
@@ -82,9 +80,9 @@ class TaskParser {
         let calendar = Calendar.current
         let now = Date()
         
-        // Check for time references like "in 30 minutes", "in 2 hours"
+        // Check for "in X minutes/hours"
         if lowercased.contains("in ") {
-            let timePattern = "in\\s+(\\d+)\\s+(minute|hour|day|min|hr|hrs)"
+            let timePattern = "in\\s+(\\d+)\\s+(minute|hour|day|min|hr)"
             if let regex = try? NSRegularExpression(pattern: timePattern, options: .caseInsensitive) {
                 let nsString = lowercased as NSString
                 let range = NSRange(location: 0, length: nsString.length)
@@ -111,8 +109,8 @@ class TaskParser {
             }
         }
         
-        // Check for specific times like "at 3 PM", "at 14:00", "at 3 o'clock"
-        let timePattern = "at\\s+(\\d{1,2})\\s*(pm|am|:)?"
+        // Check for "at X PM/AM"
+        let timePattern = "at\\s+(\\d{1,2})\\s*(pm|am)?"
         if let regex = try? NSRegularExpression(pattern: timePattern, options: .caseInsensitive) {
             let nsString = lowercased as NSString
             let range = NSRange(location: 0, length: nsString.length)
@@ -145,11 +143,11 @@ class TaskParser {
             }
         }
         
-        // Extract title (first sentence or first 50 characters)
+        // Extract title (first sentence)
         let sentences = text.components(separatedBy: CharacterSet(charactersIn: ".!?"))
         let title = sentences.first?.trimmingCharacters(in: .whitespaces) ?? String(text.prefix(50))
         
-        // Description is the rest of the text
+        // Description is the rest
         let description = sentences.count > 1 ? sentences.dropFirst().joined(separator: ". ").trimmingCharacters(in: .whitespaces) : ""
         
         return ParsedTask(

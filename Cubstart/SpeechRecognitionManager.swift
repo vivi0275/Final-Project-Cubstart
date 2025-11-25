@@ -9,7 +9,7 @@ import Foundation
 import Speech
 import AVFoundation
 import SwiftUI
-internal import Combine
+import Combine
 
 class SpeechRecognitionManager: ObservableObject {
     @Published var isRecording = false
@@ -20,17 +20,13 @@ class SpeechRecognitionManager: ObservableObject {
     private let speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US"))
     private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
     private var recognitionTask: SFSpeechRecognitionTask?
-    private let audioEngine = AVAudioEngine()
+    private var audioEngine: AVAudioEngine?
     
     init() {
-        // Initialize authorization status
         authorizationStatus = SFSpeechRecognizer.authorizationStatus()
         
-        // Request authorization if needed
         if authorizationStatus == .notDetermined {
-            DispatchQueue.main.async { [weak self] in
-                self?.requestAuthorization()
-            }
+            requestAuthorization()
         }
     }
     
@@ -41,7 +37,6 @@ class SpeechRecognitionManager: ObservableObject {
                 switch authStatus {
                 case .authorized:
                     print("✅ Speech recognition authorized")
-                    self?.errorMessage = nil
                 case .denied:
                     self?.errorMessage = "Speech recognition denied. Please enable it in Settings."
                 case .restricted:
@@ -60,14 +55,12 @@ class SpeechRecognitionManager: ObservableObject {
     }
     
     func startRecording() {
-        // Check authorization first
+        // Check authorization
         guard authorizationStatus == .authorized else {
             if authorizationStatus == .notDetermined {
                 requestAuthorization()
-                errorMessage = "Please authorize speech recognition first."
-            } else {
-                errorMessage = "Speech recognition not authorized. Please enable it in Settings."
             }
+            errorMessage = "Speech recognition not authorized. Please enable it in Settings."
             return
         }
         
@@ -79,90 +72,85 @@ class SpeechRecognitionManager: ObservableObject {
         // Request microphone permission
         AVAudioSession.sharedInstance().requestRecordPermission { [weak self] granted in
             DispatchQueue.main.async {
+                guard let self = self else { return }
                 if !granted {
-                    self?.errorMessage = "Microphone permission denied. Please enable it in Settings."
+                    self.errorMessage = "Microphone permission denied. Please enable it in Settings."
                     return
                 }
-                self?.performStartRecording()
+                self.performStartRecording()
             }
         }
     }
     
     private func performStartRecording() {
-        // Ensure we're on main thread for UI updates
-        guard Thread.isMainThread else {
-            DispatchQueue.main.async { [weak self] in
-                self?.performStartRecording()
-            }
-            return
-        }
-        
-        // Stop previous session if any
+        // Stop any existing recording first
         stopRecording()
         
         transcribedText = ""
         errorMessage = nil
         
-        // Configure audio session
+        // Configure audio session first
         let audioSession = AVAudioSession.sharedInstance()
         do {
             try audioSession.setCategory(.record, mode: .measurement, options: .duckOthers)
             try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
         } catch {
             errorMessage = "Audio session setup failed: \(error.localizedDescription)"
-            print("❌ [SpeechRecognitionManager] Audio session error: \(error)")
+            return
+        }
+        
+        // Create a fresh audio engine instance
+        audioEngine = AVAudioEngine()
+        guard let audioEngine = audioEngine else {
+            errorMessage = "Unable to create audio engine"
             return
         }
         
         // Create recognition request
-        let recognitionRequest = SFSpeechAudioBufferRecognitionRequest()
+        recognitionRequest = SFSpeechAudioBufferRecognitionRequest()
+        guard let recognitionRequest = recognitionRequest else {
+            errorMessage = "Unable to create recognition request"
+            return
+        }
         
-        self.recognitionRequest = recognitionRequest
         recognitionRequest.shouldReportPartialResults = true
         
-        // Get input node - must be done before preparing engine
+        // Get input node
         let inputNode = audioEngine.inputNode
-        let recordingFormat = inputNode.outputFormat(forBus: 0)
         
-        // Ensure audio engine is stopped before modifying taps
-        if audioEngine.isRunning {
-            audioEngine.stop()
+        // Get format from input node (must be done before installing tap)
+        let nodeFormat = inputNode.outputFormat(forBus: 0)
+        
+        // Use node format if valid, otherwise create a compatible format
+        let recordingFormat: AVAudioFormat
+        if nodeFormat.sampleRate > 0 && nodeFormat.channelCount > 0 {
+            recordingFormat = nodeFormat
+        } else {
+            // Fallback to standard format
+            guard let fallbackFormat = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: 16000, channels: 1, interleaved: false) else {
+                errorMessage = "Unable to configure audio format"
+                return
+            }
+            recordingFormat = fallbackFormat
         }
         
-        // Remove any existing tap safely (must be done when engine is stopped)
-        // Note: removeTap doesn't throw, but will crash if engine is running
-        inputNode.removeTap(onBus: 0)
-        
-        // Install tap - must be done before starting engine
+        // Install tap with the format
         inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { [weak self] buffer, _ in
-            guard let self = self, let request = self.recognitionRequest else { return }
-            // Append buffer to recognition request
-            request.append(buffer)
+            self?.recognitionRequest?.append(buffer)
         }
         
-        // Prepare audio engine
-        audioEngine.prepare()
-        
-        // Start audio engine
+        // Start audio engine (prepare is called automatically)
         do {
             try audioEngine.start()
             isRecording = true
-            print("✅ [SpeechRecognitionManager] Audio engine started")
         } catch {
             errorMessage = "Audio engine failed to start: \(error.localizedDescription)"
-            print("❌ [SpeechRecognitionManager] Audio engine error: \(error)")
             stopRecording()
             return
         }
         
-        // Start recognition task
-        guard let speechRecognizer = speechRecognizer else {
-            errorMessage = "Speech recognizer not available"
-            stopRecording()
-            return
-        }
-        
-        recognitionTask = speechRecognizer.recognitionTask(with: recognitionRequest) { [weak self] result, error in
+        // Start recognition
+        recognitionTask = speechRecognizer?.recognitionTask(with: recognitionRequest) { [weak self] result, error in
             guard let self = self else { return }
             
             if let result = result {
@@ -170,7 +158,6 @@ class SpeechRecognitionManager: ObservableObject {
                     self.transcribedText = result.bestTranscription.formattedString
                 }
                 
-                // Check if recognition is finished
                 if result.isFinal {
                     DispatchQueue.main.async {
                         self.stopRecording()
@@ -183,7 +170,6 @@ class SpeechRecognitionManager: ObservableObject {
                     let nsError = error as NSError
                     if nsError.code != 216 { // Ignore cancellation errors
                         self.errorMessage = error.localizedDescription
-                        print("❌ [SpeechRecognitionManager] Recognition error: \(error)")
                     }
                     self.stopRecording()
                 }
@@ -192,22 +178,13 @@ class SpeechRecognitionManager: ObservableObject {
     }
     
     func stopRecording() {
-        // Ensure we're on main thread
-        guard Thread.isMainThread else {
-            DispatchQueue.main.async { [weak self] in
-                self?.stopRecording()
-            }
-            return
-        }
-        
-        // Stop audio engine first
-        if audioEngine.isRunning {
+        // Stop audio engine if running
+        if let audioEngine = audioEngine, audioEngine.isRunning {
             audioEngine.stop()
         }
         
-        // Remove tap safely (must be done after stopping engine)
-        // Note: removeTap doesn't throw, but will crash if called incorrectly
-        audioEngine.inputNode.removeTap(onBus: 0)
+        // Remove tap safely
+        audioEngine?.inputNode.removeTap(onBus: 0)
         
         // End recognition request
         recognitionRequest?.endAudio()
@@ -217,16 +194,14 @@ class SpeechRecognitionManager: ObservableObject {
         recognitionTask?.cancel()
         recognitionTask = nil
         
+        // Clean up audio engine - create fresh instance for next use
+        audioEngine = nil
+        
         // Deactivate audio session
         let audioSession = AVAudioSession.sharedInstance()
-        do {
-            try audioSession.setActive(false, options: .notifyOthersOnDeactivation)
-        } catch {
-            print("⚠️ [SpeechRecognitionManager] Audio session deactivation warning: \(error.localizedDescription)")
-        }
+        try? audioSession.setActive(false, options: .notifyOthersOnDeactivation)
         
         isRecording = false
-        print("✅ [SpeechRecognitionManager] Recording stopped")
     }
 }
 

@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import Combine
 
 struct VoiceTaskView: View {
     @Environment(\.dismiss) private var dismiss
@@ -14,45 +15,33 @@ struct VoiceTaskView: View {
     @StateObject private var speechManager = SpeechRecognitionManager()
     
     @State private var parsedTask: ParsedTask?
-    @State private var showingConfirmation = false
     
     var body: some View {
         NavigationView {
-            ScrollView {
-                VStack(spacing: 24) {
-                    // Recording indicator
-                    VStack(spacing: 16) {
-                        Button(action: {
-                            if !speechManager.isRecording {
-                                speechManager.startRecording()
-                            }
-                        }) {
-                            ZStack {
-                                Circle()
-                                    .fill(speechManager.isRecording ? Color.red.opacity(0.2) : Color.blue.opacity(0.1))
-                                    .frame(width: 120, height: 120)
-                                
-                                if speechManager.isRecording {
-                                    Circle()
-                                        .fill(Color.red)
-                                        .frame(width: 80, height: 80)
-                                        .scaleEffect(speechManager.isRecording ? 1.1 : 1.0)
-                                        .animation(.easeInOut(duration: 0.6).repeatForever(autoreverses: true), value: speechManager.isRecording)
-                                } else {
-                                    Image(systemName: "mic.fill")
-                                        .font(.system(size: 40))
-                                        .foregroundColor(.blue)
-                                }
-                            }
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                        .disabled(speechManager.isRecording)
+            VStack(spacing: 20) {
+                // Recording indicator
+                VStack(spacing: 16) {
+                    ZStack {
+                        Circle()
+                            .fill(speechManager.isRecording ? Color.red.opacity(0.2) : Color.blue.opacity(0.1))
+                            .frame(width: 100, height: 100)
                         
-                        Text(speechManager.isRecording ? "Listening..." : "Tap microphone or button to start")
-                            .font(.headline)
-                            .foregroundColor(.secondary)
+                        if speechManager.isRecording {
+                            Circle()
+                                .fill(Color.red)
+                                .frame(width: 70, height: 70)
+                        } else {
+                            Image(systemName: "mic.fill")
+                                .font(.system(size: 35))
+                                .foregroundColor(.blue)
+                        }
                     }
-                    .padding(.top, 40)
+                    
+                    Text(speechManager.isRecording ? "Listening..." : "Ready to record")
+                        .font(.headline)
+                        .foregroundColor(.secondary)
+                }
+                .padding(.top, 30)
                 
                 // Transcribed text
                 if !speechManager.transcribedText.isEmpty {
@@ -69,12 +58,7 @@ struct VoiceTaskView: View {
                                 .background(Color(.systemGray6))
                                 .cornerRadius(12)
                         }
-                        .frame(maxHeight: 150)
-                        .onChange(of: speechManager.transcribedText) { oldValue, newValue in
-                            if !speechManager.isRecording && !newValue.isEmpty {
-                                parseTranscribedText()
-                            }
-                        }
+                        .frame(maxHeight: 120)
                         
                         // Parsed task preview
                         if let parsed = parsedTask {
@@ -97,7 +81,7 @@ struct VoiceTaskView: View {
                                             Text("Description:")
                                                 .fontWeight(.semibold)
                                             Text(parsed.description)
-                                                .lineLimit(3)
+                                                .lineLimit(2)
                                         }
                                     }
                                     
@@ -133,7 +117,6 @@ struct VoiceTaskView: View {
                                         HStack {
                                             Text("Due:")
                                                 .fontWeight(.semibold)
-                                            Text(dueTime, style: .date)
                                             Text(dueTime, style: .time)
                                         }
                                     }
@@ -154,100 +137,88 @@ struct VoiceTaskView: View {
                 
                 // Error message
                 if let error = speechManager.errorMessage {
-                        VStack(spacing: 8) {
-                            HStack {
-                                Image(systemName: "exclamationmark.triangle.fill")
-                                    .foregroundColor(.red)
-                                Text(error)
-                                    .font(.subheadline)
-                                    .foregroundColor(.red)
-                            }
-                            .padding()
-                            .background(Color.red.opacity(0.1))
-                            .cornerRadius(8)
-                            
-                            if !speechManager.isAuthorized {
-                                Button(action: {
-                                    if let settingsUrl = URL(string: UIApplication.openSettingsURLString) {
-                                        UIApplication.shared.open(settingsUrl)
-                                    }
-                                }) {
-                                    Text("Open Settings")
-                                        .font(.subheadline)
-                                        .foregroundColor(.blue)
-                                }
-                            }
-                        }
-                        .padding(.horizontal)
+                    HStack {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundColor(.red)
+                        Text(error)
+                            .font(.subheadline)
+                            .foregroundColor(.red)
                     }
+                    .padding()
+                    .background(Color.red.opacity(0.1))
+                    .cornerRadius(8)
+                    .padding(.horizontal)
                     
-                    // Action buttons - Fixed at bottom
-                    VStack(spacing: 12) {
-                        if speechManager.isRecording {
-                            Button(action: {
-                                speechManager.stopRecording()
-                                parseTranscribedText()
-                            }) {
-                                HStack {
-                                    Image(systemName: "stop.circle.fill")
-                                    Text("Stop Recording")
-                                }
-                                .font(.headline)
-                                .foregroundColor(.white)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 16)
-                                .background(Color.red)
-                                .cornerRadius(12)
+                    if !speechManager.isAuthorized {
+                        Button(action: {
+                            if let settingsUrl = URL(string: UIApplication.openSettingsURLString) {
+                                UIApplication.shared.open(settingsUrl)
                             }
-                            .buttonStyle(.plain)
-                        } else {
+                        }) {
+                            Text("Open Settings")
+                                .font(.subheadline)
+                                .foregroundColor(.blue)
+                        }
+                    }
+                }
+                
+                Spacer()
+                
+                // Action buttons
+                VStack(spacing: 12) {
+                    if speechManager.isRecording {
+                        Button(action: {
+                            speechManager.stopRecording()
+                            parseTranscribedText()
+                        }) {
+                            HStack {
+                                Image(systemName: "stop.circle.fill")
+                                Text("Stop Recording")
+                            }
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                            .background(Color.red)
+                            .cornerRadius(12)
+                        }
+                    } else {
+                        Button(action: {
+                            speechManager.startRecording()
+                        }) {
+                            HStack(spacing: 8) {
+                                Image(systemName: "mic.fill")
+                                Text(speechManager.transcribedText.isEmpty ? "Start Recording" : "Record Again")
+                            }
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                            .background(speechManager.isAuthorized ? Color.blue : Color.gray)
+                            .cornerRadius(12)
+                        }
+                        .disabled(!speechManager.isAuthorized)
+                        
+                        if !speechManager.transcribedText.isEmpty {
                             Button(action: {
-                                print("🎤 [VoiceTaskView] Start Recording button tapped")
-                                speechManager.startRecording()
+                                createTask()
                             }) {
                                 HStack(spacing: 8) {
-                                    Image(systemName: "mic.fill")
-                                        .font(.title3)
-                                    Text(speechManager.transcribedText.isEmpty ? "Start Recording" : "Record Again")
-                                        .fontWeight(.semibold)
+                                    Image(systemName: "checkmark.circle.fill")
+                                    Text("Create Task")
                                 }
                                 .font(.headline)
                                 .foregroundColor(.white)
                                 .frame(maxWidth: .infinity)
-                                .padding(.vertical, 16)
-                                .background(speechManager.isAuthorized ? Color.blue : Color.gray)
+                                .padding(.vertical, 14)
+                                .background(Color.green)
                                 .cornerRadius(12)
-                                .shadow(color: speechManager.isAuthorized ? Color.blue.opacity(0.3) : Color.clear, radius: 8, x: 0, y: 4)
-                            }
-                            .buttonStyle(.plain)
-                            .disabled(!speechManager.isAuthorized)
-                            
-                            if !speechManager.transcribedText.isEmpty {
-                                Button(action: {
-                                    createTask()
-                                }) {
-                                    HStack(spacing: 8) {
-                                        Image(systemName: "checkmark.circle.fill")
-                                            .font(.title3)
-                                        Text("Create Task")
-                                            .fontWeight(.semibold)
-                                    }
-                                    .font(.headline)
-                                    .foregroundColor(.white)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 16)
-                                    .background(Color.green)
-                                    .cornerRadius(12)
-                                    .shadow(color: Color.green.opacity(0.3), radius: 8, x: 0, y: 4)
-                                }
-                                .buttonStyle(.plain)
                             }
                         }
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, 30)
-                    .padding(.top, 20)
                 }
+                .padding(.horizontal, 20)
+                .padding(.bottom, 20)
             }
             .navigationTitle("Voice Task")
             .toolbar {
@@ -268,7 +239,7 @@ struct VoiceTaskView: View {
     
     private func createTask() {
         guard let parsed = parsedTask else {
-            // If parsing failed, create task with transcribed text as title
+            // Create task with transcribed text as title
             let newTask = NursingTask(
                 title: speechManager.transcribedText,
                 description: "",
@@ -280,15 +251,12 @@ struct VoiceTaskView: View {
             
             do {
                 try modelContext.save()
-                print("✅ [VoiceTaskView] Task created from voice: \(newTask.title)")
-                
                 Task {
                     await TaskSyncService.shared.syncTaskToFirestore(newTask)
                 }
-                
                 dismiss()
             } catch {
-                print("❌ [VoiceTaskView] Error saving task: \(error)")
+                print("❌ Error saving task: \(error)")
             }
             return
         }
@@ -306,16 +274,12 @@ struct VoiceTaskView: View {
         
         do {
             try modelContext.save()
-            print("✅ [VoiceTaskView] Task created from voice: \(newTask.title)")
-            
-            // Sync with Firestore
             Task {
                 await TaskSyncService.shared.syncTaskToFirestore(newTask)
             }
-            
             dismiss()
         } catch {
-            print("❌ [VoiceTaskView] Error saving task: \(error)")
+            print("❌ Error saving task: \(error)")
         }
     }
 }
