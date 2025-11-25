@@ -14,6 +14,7 @@ struct ContentView: View {
     
     @State private var showingAddTask = false
     @State private var showingQuickActions = false
+    @State private var showingVoiceTask = false
     @State private var selectedTask: NursingTask?
     @State private var searchText = ""
     @State private var filterCategory: TaskCategory?
@@ -256,6 +257,12 @@ struct ContentView: View {
                         }
                         
                         Button(action: {
+                            showingVoiceTask = true
+                        }) {
+                            Label("Voice Task", systemImage: "mic.fill")
+                        }
+                        
+                        Button(action: {
                             showingQuickActions = true
                         }) {
                             Label("Quick Actions", systemImage: "bolt.circle")
@@ -289,6 +296,9 @@ struct ContentView: View {
             }
             .sheet(isPresented: $showingAddTask) {
                 AddTaskView()
+            }
+            .sheet(isPresented: $showingVoiceTask) {
+                VoiceTaskView()
             }
             .sheet(isPresented: $showingQuickActions) {
                 QuickActionsView()

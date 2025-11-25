@@ -19,11 +19,17 @@ struct MainTabView: View {
                 }
                 .tag(0)
             
+            CalendarView()
+                .tabItem {
+                    Label("Calendar", systemImage: "calendar")
+                }
+                .tag(1)
+            
             DashboardView()
                 .tabItem {
                     Label("Dashboard", systemImage: "chart.bar.fill")
                 }
-                .tag(1)
+                .tag(2)
         }
     }
 }
