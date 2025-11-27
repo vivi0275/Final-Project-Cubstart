@@ -3,6 +3,7 @@
 //  Cubstart
 //
 //  Created on 17/11/2025.
+//  Modified on 26/11/2025 - Added Doctor tab
 //
 
 import SwiftUI
@@ -30,12 +31,17 @@ struct MainTabView: View {
                     Label("Dashboard", systemImage: "chart.bar.fill")
                 }
                 .tag(2)
+            
+            DoctorMainView()
+                .tabItem {
+                    Label("Doctor", systemImage: "stethoscope")
+                }
+                .tag(3)
         }
     }
 }
 
 #Preview {
     MainTabView()
-        .modelContainer(for: NursingTask.self, inMemory: true)
+        .modelContainer(for: [NursingTask.self, Patient.self], inMemory: true)
 }
-

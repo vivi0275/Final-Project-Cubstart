@@ -3,6 +3,7 @@
 //  Cubstart
 //
 //  Created by victor picart on 17/11/2025.
+//  Modified on 26/11/2025 - Added Patient model
 //
 
 import SwiftUI
@@ -32,7 +33,9 @@ struct CubstartApp: App {
     
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            NursingTask.self
+            NursingTask.self,
+            Patient.self,
+            MedicalProtocol.self  // NOUVEAU
         ])
         
         // Use a specific URL for the database to allow reset if needed
@@ -90,8 +93,84 @@ struct CubstartApp: App {
                         print("🔄 [CubstartApp] Initial task synchronization...")
                         await TaskSyncService.shared.syncAllToFirestore(modelContext: modelContext)
                     }
+                    
+                    // Add some sample patients for testing (only in development)
+                    #if DEBUG
+                    addSamplePatientsIfNeeded(modelContext: modelContext)
+                    #endif
                 }
         }
         .modelContainer(sharedModelContainer)
     }
+    
+    #if DEBUG
+    private func addSamplePatientsIfNeeded(modelContext: ModelContext) {
+        let descriptor = FetchDescriptor<Patient>()
+        
+        do {
+            let existingPatients = try modelContext.fetch(descriptor)
+            
+            if existingPatients.isEmpty {
+                print("📝 [CubstartApp] Adding sample patients for testing...")
+                
+                let samplePatients = [
+                    Patient(
+                        patientId: "P-001",
+                        name: "John Smith",
+                        roomNumber: "302",
+                        diagnosis: "Post-operative recovery following appendectomy",
+                        status: .stable,
+                        notes: "Patient recovering well, pain managed with medication",
+                        assignedDoctor: "Dr. Anderson"
+                    ),
+                    Patient(
+                        patientId: "P-002",
+                        name: "Maria Garcia",
+                        roomNumber: "215",
+                        diagnosis: "Pneumonia",
+                        status: .serious,
+                        notes: "Requires frequent vital signs monitoring",
+                        assignedDoctor: "Dr. Chen"
+                    ),
+                    Patient(
+                        patientId: "P-003",
+                        name: "Robert Johnson",
+                        roomNumber: "401",
+                        diagnosis: "Cardiac monitoring following MI",
+                        status: .critical,
+                        notes: "ICU patient, continuous cardiac monitoring required",
+                        assignedDoctor: "Dr. Williams"
+                    ),
+                    Patient(
+                        patientId: "P-004",
+                        name: "Emily Davis",
+                        roomNumber: "118",
+                        diagnosis: "Diabetes management",
+                        status: .stable,
+                        notes: "Blood sugar levels stabilizing, patient education ongoing",
+                        assignedDoctor: "Dr. Martinez"
+                    ),
+                    Patient(
+                        patientId: "P-005",
+                        name: "Michael Brown",
+                        roomNumber: "309",
+                        diagnosis: "Fracture repair - femur",
+                        status: .recovering,
+                        notes: "Physical therapy started, mobility improving",
+                        assignedDoctor: "Dr. Anderson"
+                    )
+                ]
+                
+                for patient in samplePatients {
+                    modelContext.insert(patient)
+                }
+                
+                try modelContext.save()
+                print("✅ [CubstartApp] Sample patients added successfully")
+            }
+        } catch {
+            print("❌ [CubstartApp] Error checking/adding sample patients: \(error)")
+        }
+    }
+    #endif
 }

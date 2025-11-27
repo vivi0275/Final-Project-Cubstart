@@ -20,6 +20,7 @@ struct ContentView: View {
     @State private var filterCategory: TaskCategory?
     @State private var filterPriority: TaskPriority?
     @State private var showCompletedTasks = true
+    @State private var showingCompletionView = false
     
     var filteredTasks: [NursingTask] {
         let filtered = tasks.filter { task in
@@ -229,10 +230,17 @@ struct ContentView: View {
                                 }
                                 .swipeActions(edge: .leading) {
                                     Button(task.isCompleted ? "Reactivate" : "Complete") {
-                                        task.toggleCompletion()
-                                        try? modelContext.save()
+                                        // ANCIEN CODE - REMPLACER PAR:
+                                        if task.isCompleted {
+                                            task.isCompleted = false
+                                            task.completedAt = nil
+                                            try? modelContext.save()
+                                        } else {
+                                            // NOUVEAU: Ouvrir interface de validation
+                                            selectedTask = task
+                                            showingCompletionView = true
+                                        }
                                         
-                                        // Sync with Firestore
                                         Task {
                                             await TaskSyncService.shared.syncTaskToFirestore(task)
                                         }
@@ -302,6 +310,11 @@ struct ContentView: View {
             }
             .sheet(isPresented: $showingQuickActions) {
                 QuickActionsView()
+            }
+            .sheet(isPresented: $showingCompletionView) {
+                if let task = selectedTask, !task.isCompleted {
+                    TaskCompletionView(task: task)
+                }
             }
             .sheet(item: $selectedTask) { task in
                 TaskDetailView(task: task)

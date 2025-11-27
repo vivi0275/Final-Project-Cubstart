@@ -70,14 +70,27 @@ class SpeechRecognitionManager: ObservableObject {
         }
         
         // Request microphone permission
-        AVAudioSession.sharedInstance().requestRecordPermission { [weak self] granted in
-            DispatchQueue.main.async {
-                guard let self = self else { return }
-                if !granted {
-                    self.errorMessage = "Microphone permission denied. Please enable it in Settings."
-                    return
+        if #available(iOS 17.0, *) {
+            AVAudioApplication.requestRecordPermission { [weak self] granted in
+                DispatchQueue.main.async {
+                    guard let self = self else { return }
+                    if !granted {
+                        self.errorMessage = "Microphone permission denied. Please enable it in Settings."
+                        return
+                    }
+                    self.performStartRecording()
                 }
-                self.performStartRecording()
+            }
+        } else {
+            AVAudioSession.sharedInstance().requestRecordPermission { [weak self] granted in
+                DispatchQueue.main.async {
+                    guard let self = self else { return }
+                    if !granted {
+                        self.errorMessage = "Microphone permission denied. Please enable it in Settings."
+                        return
+                    }
+                    self.performStartRecording()
+                }
             }
         }
     }
@@ -204,4 +217,3 @@ class SpeechRecognitionManager: ObservableObject {
         isRecording = false
     }
 }
-
