@@ -451,9 +451,13 @@ struct TimelineTaskCard: View {
                     }
                     
                     if let dueTime = task.dueTime {
-                        Label(dueTime, style: .relative)
-                            .font(.caption2)
-                            .foregroundColor(task.isOverdue ? .red : .secondary)
+                        Label {
+                            Text(dueTime, style: .relative)
+                        } icon: {
+                            Image(systemName: "clock")
+                        }
+                        .font(.caption2)
+                        .foregroundColor(task.isOverdue ? .red : .secondary)
                     }
                     
                     Image(systemName: task.priority.systemImage)
@@ -510,3 +514,4 @@ struct TimelineTaskCard: View {
     DoctorTimelineDashboard()
         .modelContainer(for: [NursingTask.self, Patient.self], inMemory: true)
 }
+

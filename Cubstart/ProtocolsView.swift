@@ -99,10 +99,10 @@ struct ProtocolsView: View {
                 // Protocols list
                 ScrollView {
                     LazyVStack(spacing: 16) {
-                        ForEach(filteredProtocols) { protocol in
-                            ProtocolCard(protocol: protocol)
+                        ForEach(filteredProtocols) { proto in
+                            ProtocolCard(proto: proto)
                                 .onTapGesture {
-                                    selectedProtocol = protocol
+                                    selectedProtocol = proto
                                     showingProtocolApplication = true
                                 }
                         }
@@ -113,9 +113,9 @@ struct ProtocolsView: View {
             .navigationTitle("Protocoles")
             .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $showingProtocolApplication) {
-                if let protocol = selectedProtocol {
+                if let proto = selectedProtocol {
                     ProtocolApplicationView(
-                        protocol: protocol,
+                        proto: proto,
                         patients: patients
                     )
                 }
@@ -162,30 +162,30 @@ struct CategoryFilterButton: View {
 }
 
 struct ProtocolCard: View {
-    let protocol: ProtocolTemplate
+    let proto: ProtocolTemplate
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             // Header
             HStack {
-                Image(systemName: protocol.category.systemImage)
+                Image(systemName: proto.category.systemImage)
                     .font(.title2)
-                    .foregroundColor(Color(protocol.category.color))
+                    .foregroundColor(Color(proto.category.color))
                     .frame(width: 50, height: 50)
-                    .background(Color(protocol.category.color).opacity(0.1))
+                    .background(Color(proto.category.color).opacity(0.1))
                     .cornerRadius(12)
                 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(protocol.name)
+                    Text(proto.name)
                         .font(.headline)
                         .fontWeight(.bold)
                     
                     HStack(spacing: 8) {
-                        Label(protocol.category.rawValue, systemImage: "tag.fill")
+                        Label(proto.category.rawValue, systemImage: "tag.fill")
                             .font(.caption)
-                            .foregroundColor(Color(protocol.category.color))
+                            .foregroundColor(Color(proto.category.color))
                         
-                        Label("\(protocol.tasks.count) tâches", systemImage: "list.bullet")
+                        Label("\(proto.tasks.count) tâches", systemImage: "list.bullet")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -198,7 +198,7 @@ struct ProtocolCard: View {
             }
             
             // Description
-            Text(protocol.description)
+            Text(proto.description)
                 .font(.subheadline)
                 .foregroundColor(.secondary)
                 .lineLimit(2)
@@ -214,7 +214,7 @@ struct ProtocolCard: View {
                     Text("Durée estimée")
                         .font(.caption)
                         .foregroundColor(.secondary)
-                    Text(formatDuration(protocol.estimatedDuration))
+                    Text(formatDuration(proto.estimatedDuration))
                         .font(.caption)
                         .fontWeight(.semibold)
                 }
@@ -225,7 +225,7 @@ struct ProtocolCard: View {
                     Image(systemName: "list.number")
                         .font(.caption)
                         .foregroundColor(.purple)
-                    Text("\(protocol.tasks.count) étapes")
+                    Text("\(proto.tasks.count) étapes")
                         .font(.caption)
                         .fontWeight(.semibold)
                 }
@@ -238,7 +238,7 @@ struct ProtocolCard: View {
                     .foregroundColor(.secondary)
                     .fontWeight(.semibold)
                 
-                ForEach(protocol.tasks.prefix(3), id: \.title) { task in
+                ForEach(proto.tasks.prefix(3), id: \.title) { task in
                     HStack(spacing: 6) {
                         Circle()
                             .fill(Color(task.priority.color))
@@ -250,8 +250,8 @@ struct ProtocolCard: View {
                     }
                 }
                 
-                if protocol.tasks.count > 3 {
-                    Text("+ \(protocol.tasks.count - 3) autres tâches...")
+                if proto.tasks.count > 3 {
+                    Text("+ \(proto.tasks.count - 3) autres tâches...")
                         .font(.caption2)
                         .foregroundColor(.secondary)
                         .italic()
@@ -281,7 +281,7 @@ struct ProtocolApplicationView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     
-    let protocol: ProtocolTemplate
+    let proto: ProtocolTemplate
     let patients: [Patient]
     
     @State private var selectedPatientId: String?
@@ -299,29 +299,29 @@ struct ProtocolApplicationView: View {
                     // Protocol info
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
-                            Image(systemName: protocol.category.systemImage)
+                            Image(systemName: proto.category.systemImage)
                                 .font(.largeTitle)
-                                .foregroundColor(Color(protocol.category.color))
+                                .foregroundColor(Color(proto.category.color))
                                 .frame(width: 60, height: 60)
-                                .background(Color(protocol.category.color).opacity(0.1))
+                                .background(Color(proto.category.color).opacity(0.1))
                                 .cornerRadius(12)
                             
                             VStack(alignment: .leading, spacing: 4) {
-                                Text(protocol.name)
+                                Text(proto.name)
                                     .font(.title2)
                                     .fontWeight(.bold)
                                 
-                                Text(protocol.description)
+                                Text(proto.description)
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
                         }
                         
                         HStack(spacing: 16) {
-                            Label("\(protocol.tasks.count) tâches", systemImage: "list.bullet")
+                            Label("\(proto.tasks.count) tâches", systemImage: "list.bullet")
                                 .font(.caption)
                             
-                            Label(formatDuration(protocol.estimatedDuration), systemImage: "clock.fill")
+                            Label(formatDuration(proto.estimatedDuration), systemImage: "clock.fill")
                                 .font(.caption)
                         }
                         .foregroundColor(.secondary)
@@ -453,16 +453,16 @@ struct ProtocolApplicationView: View {
                                 .font(.caption)
                                 .foregroundColor(.blue)
                                 .onTapGesture {
-                                    if selectedTasks.count == protocol.tasks.count {
+                                    if selectedTasks.count == proto.tasks.count {
                                         selectedTasks.removeAll()
                                     } else {
-                                        selectedTasks = Set(protocol.tasks.map { $0.title })
+                                        selectedTasks = Set(proto.tasks.map { $0.title })
                                     }
                                 }
                         }
                         .padding(.horizontal)
                         
-                        ForEach(protocol.tasks, id: \.title) { task in
+                        ForEach(proto.tasks, id: \.title) { task in
                             ProtocolTaskRow(
                                 task: task,
                                 isSelected: selectedTasks.contains(task.title)
@@ -517,7 +517,7 @@ struct ProtocolApplicationView: View {
                 }
                 Button("Annuler", role: .cancel) {}
             } message: {
-                Text("Cela va créer \(selectedTasks.count) tâche\(selectedTasks.count > 1 ? "s" : "") basée\(selectedTasks.count > 1 ? "s" : "") sur le protocole \(protocol.name).")
+                Text("Cela va créer \(selectedTasks.count) tâche\(selectedTasks.count > 1 ? "s" : "") basée\(selectedTasks.count > 1 ? "s" : "") sur le protocole \(proto.name).")
             }
         }
     }
@@ -525,7 +525,7 @@ struct ProtocolApplicationView: View {
     private func applyProtocol() {
         var createdCount = 0
         
-        for protocolTask in protocol.tasks where selectedTasks.contains(protocolTask.title) {
+        for protocolTask in proto.tasks where selectedTasks.contains(protocolTask.title) {
             let newTask = NursingTask(
                 title: protocolTask.title,
                 description: protocolTask.description,
