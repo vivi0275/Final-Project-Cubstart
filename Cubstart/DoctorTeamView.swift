@@ -59,7 +59,8 @@ struct DoctorTeamView: View {
     }
     
     var body: some View {
-        VStack(spacing: 0) {
+        NavigationView {
+            VStack(spacing: 0) {
             // Team overview stats
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
@@ -142,10 +143,14 @@ struct DoctorTeamView: View {
                 .padding()
             }
         }
+        .navigationTitle("Team")
+        .navigationBarTitleDisplayMode(.large)
         .searchable(text: $searchText, prompt: "Search staff...")
         .sheet(item: $selectedStaff) { staff in
             StaffDetailView(staff: staff)
         }
+        }
+        .navigationViewStyle(.stack)
     }
 }
 

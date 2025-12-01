@@ -7,11 +7,17 @@
 
 import Foundation
 import FirebaseFirestore
+import FirebaseCore
 
 class FirestoreService {
     static let shared = FirestoreService()
     
-    private let db = Firestore.firestore()
+    private var db: Firestore? {
+        guard FirebaseApp.app() != nil else {
+            return nil
+        }
+        return Firestore.firestore()
+    }
     private let collectionName = "tasks"
     
     private init() {}
@@ -82,6 +88,10 @@ class FirestoreService {
     
     /// Adds or updates a task in Firestore
     func saveTask(_ task: NursingTask) async throws {
+        guard let db = db else {
+            throw NSError(domain: "FirestoreService", code: -1, userInfo: [NSLocalizedDescriptionKey: "Firebase is not configured"])
+        }
+        
         print("🔥 [FirestoreService] Attempting to save task: \(task.id.uuidString)")
         print("🔥 [FirestoreService] Title: \(task.title)")
         
@@ -102,11 +112,17 @@ class FirestoreService {
     
     /// Deletes a task from Firestore
     func deleteTask(_ task: NursingTask) async throws {
+        guard let db = db else {
+            throw NSError(domain: "FirestoreService", code: -1, userInfo: [NSLocalizedDescriptionKey: "Firebase is not configured"])
+        }
         try await db.collection(collectionName).document(task.id.uuidString).delete()
     }
     
     /// Fetches all tasks from Firestore
     func fetchAllTasks() async throws -> [NursingTask] {
+        guard let db = db else {
+            throw NSError(domain: "FirestoreService", code: -1, userInfo: [NSLocalizedDescriptionKey: "Firebase is not configured"])
+        }
         let snapshot = try await db.collection(collectionName).getDocuments()
         
         var tasks: [NursingTask] = []
@@ -121,7 +137,11 @@ class FirestoreService {
     }
     
     /// Listens to real-time changes in Firestore
-    func observeTasks(completion: @escaping ([NursingTask]) -> Void) -> ListenerRegistration {
+    func observeTasks(completion: @escaping ([NursingTask]) -> Void) -> ListenerRegistration? {
+        guard let db = db else {
+            print("⚠️ [FirestoreService] Firebase is not configured. Cannot observe tasks.")
+            return nil
+        }
         return db.collection(collectionName).addSnapshotListener { snapshot, error in
             guard let documents = snapshot?.documents else {
                 print("Error listening to Firestore: \(error?.localizedDescription ?? "Unknown error")")

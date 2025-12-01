@@ -32,11 +32,11 @@ struct ProtocolsView: View {
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("Protocoles Médicaux")
+                            Text("Medical Protocols")
                                 .font(.title2)
                                 .fontWeight(.bold)
                             
-                            Text("\(ProtocolTemplate.allProtocols.count) protocoles prédéfinis")
+                            Text("\(ProtocolTemplate.allProtocols.count) predefined protocols")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
@@ -49,11 +49,11 @@ struct ProtocolsView: View {
                                 Image(systemName: "clock.fill")
                                     .font(.caption)
                                     .foregroundColor(.blue)
-                                Text("Gain de temps")
+                                Text("Time saving")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
-                            Text("5-10 tâches/clic")
+                            Text("5-10 tasks/click")
                                 .font(.caption2)
                                 .fontWeight(.semibold)
                                 .foregroundColor(.blue)
@@ -110,7 +110,7 @@ struct ProtocolsView: View {
                     .padding()
                 }
             }
-            .navigationTitle("Protocoles")
+            .navigationTitle("Protocols")
             .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $showingProtocolApplication) {
                 if let proto = selectedProtocol {
@@ -140,7 +140,7 @@ struct CategoryFilterButton: View {
             } else {
                 Image(systemName: "square.grid.2x2")
                     .font(.caption)
-                Text("Tous")
+                Text("All")
                     .font(.caption)
                     .fontWeight(.medium)
             }
@@ -185,7 +185,7 @@ struct ProtocolCard: View {
                             .font(.caption)
                             .foregroundColor(Color(proto.category.color))
                         
-                        Label("\(proto.tasks.count) tâches", systemImage: "list.bullet")
+                        Label("\(proto.tasks.count) tasks", systemImage: "list.bullet")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -211,7 +211,7 @@ struct ProtocolCard: View {
                     Image(systemName: "clock.fill")
                         .font(.caption)
                         .foregroundColor(.blue)
-                    Text("Durée estimée")
+                    Text("Estimated duration")
                         .font(.caption)
                         .foregroundColor(.secondary)
                     Text(formatDuration(proto.estimatedDuration))
@@ -225,7 +225,7 @@ struct ProtocolCard: View {
                     Image(systemName: "list.number")
                         .font(.caption)
                         .foregroundColor(.purple)
-                    Text("\(proto.tasks.count) étapes")
+                    Text("\(proto.tasks.count) steps")
                         .font(.caption)
                         .fontWeight(.semibold)
                 }
@@ -233,7 +233,7 @@ struct ProtocolCard: View {
             
             // Task preview
             VStack(alignment: .leading, spacing: 6) {
-                Text("Aperçu des tâches:")
+                Text("Task preview:")
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .fontWeight(.semibold)
@@ -251,7 +251,7 @@ struct ProtocolCard: View {
                 }
                 
                 if proto.tasks.count > 3 {
-                    Text("+ \(proto.tasks.count - 3) autres tâches...")
+                    Text("+ \(proto.tasks.count - 3) other tasks...")
                         .font(.caption2)
                         .foregroundColor(.secondary)
                         .italic()
@@ -318,7 +318,7 @@ struct ProtocolApplicationView: View {
                         }
                         
                         HStack(spacing: 16) {
-                            Label("\(proto.tasks.count) tâches", systemImage: "list.bullet")
+                            Label("\(proto.tasks.count) tasks", systemImage: "list.bullet")
                                 .font(.caption)
                             
                             Label(formatDuration(proto.estimatedDuration), systemImage: "clock.fill")
@@ -333,12 +333,12 @@ struct ProtocolApplicationView: View {
                     
                     // Patient selection
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Patient (Optionnel)")
+                        Text("Patient (Optional)")
                             .font(.headline)
                             .padding(.horizontal)
                         
                         if patients.isEmpty {
-                            Text("Aucun patient disponible")
+                            Text("No patients available")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                                 .padding()
@@ -348,7 +348,7 @@ struct ProtocolApplicationView: View {
                                 .padding(.horizontal)
                         } else {
                             Menu {
-                                Button("Aucun patient") {
+                                Button("No patient") {
                                     selectedPatientId = nil
                                 }
                                 
@@ -371,7 +371,7 @@ struct ProtocolApplicationView: View {
                                         Text("\(patient.name) (\(patient.patientId))")
                                             .foregroundColor(.primary)
                                     } else {
-                                        Text("Sélectionner un patient")
+                                        Text("Select a patient")
                                             .foregroundColor(.secondary)
                                     }
                                     
@@ -391,12 +391,12 @@ struct ProtocolApplicationView: View {
                     
                     // Staff assignment
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Assigner à (Optionnel)")
+                        Text("Assign To (Optional)")
                             .font(.headline)
                             .padding(.horizontal)
                         
                         Menu {
-                            Button("Non assigné") {
+                            Button("Unassigned") {
                                 selectedStaffId = nil
                             }
                             
@@ -424,7 +424,7 @@ struct ProtocolApplicationView: View {
                                     }
                                     .foregroundColor(.primary)
                                 } else {
-                                    Text("Sélectionner un membre du personnel")
+                                    Text("Select a staff member")
                                         .foregroundColor(.secondary)
                                 }
                                 
@@ -444,12 +444,12 @@ struct ProtocolApplicationView: View {
                     // Tasks list
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
-                            Text("Tâches du Protocole")
+                            Text("Protocol Tasks")
                                 .font(.headline)
                             
                             Spacer()
                             
-                            Text("Tout sélectionner")
+                            Text("Select All")
                                 .font(.caption)
                                 .foregroundColor(.blue)
                                 .onTapGesture {
@@ -484,7 +484,7 @@ struct ProtocolApplicationView: View {
                         HStack {
                             Image(systemName: "checkmark.circle.fill")
                                 .font(.title3)
-                            Text("Créer \(selectedTasks.count) Tâche\(selectedTasks.count > 1 ? "s" : "")")
+                            Text("Create \(selectedTasks.count) Task\(selectedTasks.count > 1 ? "s" : "")")
                                 .fontWeight(.semibold)
                         }
                         .foregroundColor(.white)
@@ -498,26 +498,26 @@ struct ProtocolApplicationView: View {
                 }
                 .padding(.vertical)
             }
-            .navigationTitle("Appliquer Protocole")
+            .navigationTitle("Apply Protocol")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Annuler") {
+                    Button("Cancel") {
                         dismiss()
                     }
                 }
             }
             .confirmationDialog(
-                "Créer les tâches ?",
+                "Create the tasks?",
                 isPresented: $showingConfirmation,
                 titleVisibility: .visible
             ) {
-                Button("Créer \(selectedTasks.count) tâche\(selectedTasks.count > 1 ? "s" : "")") {
+                Button("Create \(selectedTasks.count) task\(selectedTasks.count > 1 ? "s" : "")") {
                     applyProtocol()
                 }
-                Button("Annuler", role: .cancel) {}
+                Button("Cancel", role: .cancel) {}
             } message: {
-                Text("Cela va créer \(selectedTasks.count) tâche\(selectedTasks.count > 1 ? "s" : "") basée\(selectedTasks.count > 1 ? "s" : "") sur le protocole \(proto.name).")
+                Text("This will create \(selectedTasks.count) task\(selectedTasks.count > 1 ? "s" : "") based on the protocol \(proto.name).")
             }
         }
     }

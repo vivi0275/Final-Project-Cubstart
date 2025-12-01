@@ -10,6 +10,7 @@ import SwiftData
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.selectedProfile) private var selectedProfile
     @Query private var tasks: [NursingTask]
     
     @State private var showingAddTask = false
@@ -21,6 +22,7 @@ struct ContentView: View {
     @State private var filterPriority: TaskPriority?
     @State private var showCompletedTasks = true
     @State private var showingCompletionView = false
+    @State private var showingSettings = false
     
     var filteredTasks: [NursingTask] {
         let filtered = tasks.filter { task in
@@ -296,6 +298,14 @@ struct ContentView: View {
                         Button("Statistics") {
                             // TODO: Show statistics
                         }
+                        
+                        Divider()
+                        
+                        Button(action: {
+                            showingSettings = true
+                        }) {
+                            Label("Settings", systemImage: "gearshape")
+                        }
                     } label: {
                         Image(systemName: "ellipsis.circle")
                             .font(.title2)
@@ -318,6 +328,9 @@ struct ContentView: View {
             }
             .sheet(item: $selectedTask) { task in
                 TaskDetailView(task: task)
+            }
+            .sheet(isPresented: $showingSettings) {
+                SettingsView(selectedProfile: selectedProfile)
             }
         }
         .navigationViewStyle(.stack) // Force stack style for iOS

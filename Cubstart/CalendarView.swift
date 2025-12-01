@@ -10,11 +10,13 @@ import SwiftData
 
 struct CalendarView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.selectedProfile) private var selectedProfile
     @Query private var tasks: [NursingTask]
     
     @State private var selectedDate = Date()
     @State private var currentMonth = Date()
     @State private var selectedTask: NursingTask?
+    @State private var showingSettings = false
     
     private let calendar = Calendar.current
     
@@ -211,8 +213,20 @@ struct CalendarView: View {
             }
             .navigationTitle("Calendar")
             .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: {
+                        showingSettings = true
+                    }) {
+                        Image(systemName: "gearshape.fill")
+                    }
+                }
+            }
             .sheet(item: $selectedTask) { task in
                 TaskDetailView(task: task)
+            }
+            .sheet(isPresented: $showingSettings) {
+                SettingsView(selectedProfile: selectedProfile)
             }
         }
         .navigationViewStyle(.stack)

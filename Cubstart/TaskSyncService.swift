@@ -21,13 +21,23 @@ class TaskSyncService {
     
     /// Configures synchronization with Firestore
     func startSyncing(modelContext: ModelContext) {
+        // Check that Firebase is initialized
+        guard FirebaseApp.app() != nil else {
+            print("⚠️ [TaskSyncService] Firebase is not initialized. Synchronization disabled.")
+            return
+        }
+        
         // Listen to changes from Firestore
-        listener = firestoreService.observeTasks { [weak self] remoteTasks in
+        if let newListener = firestoreService.observeTasks(completion: { [weak self] remoteTasks in
             Task { @MainActor in
                 self?.syncRemoteToLocal(remoteTasks, modelContext: modelContext)
             }
+        }) {
+            listener = newListener
+            print("✅ [TaskSyncService] Firestore listener started")
+        } else {
+            print("⚠️ [TaskSyncService] Could not start Firestore listener")
         }
-        print("✅ [TaskSyncService] Firestore listener started")
     }
     
     /// Stops synchronization
@@ -125,6 +135,12 @@ class TaskSyncService {
     
     /// Deletes a task from Firestore
     func deleteTaskFromFirestore(_ task: NursingTask) async {
+        // Check that Firebase is initialized
+        guard FirebaseApp.app() != nil else {
+            print("⚠️ [TaskSyncService] Firebase is not initialized. Cannot delete from Firestore.")
+            return
+        }
+        
         do {
             try await firestoreService.deleteTask(task)
         } catch {
@@ -134,6 +150,12 @@ class TaskSyncService {
     
     /// Synchronizes all local tasks to Firestore
     func syncAllToFirestore(modelContext: ModelContext) async {
+        // Check that Firebase is initialized
+        guard FirebaseApp.app() != nil else {
+            print("⚠️ [TaskSyncService] Firebase is not initialized. Cannot sync to Firestore.")
+            return
+        }
+        
         let descriptor = FetchDescriptor<NursingTask>()
         
         do {

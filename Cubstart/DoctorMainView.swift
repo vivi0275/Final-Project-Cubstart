@@ -3,58 +3,54 @@
 //  Cubstart
 //
 //  Created on 26/11/2025.
+//  Modified on 27/11/2025 - Renamed to Management's Dashboard, converted to page-based navigation
 //
 
 import SwiftUI
 import SwiftData
 
 struct DoctorMainView: View {
-    @Query private var tasks: [NursingTask]
-    @Query private var patients: [Patient]
+    @Environment(\.selectedProfile) private var selectedProfile
+    @State private var showingSettings = false
+    @State private var selectedPage: ManagementPage = .timeline
     
-    @State private var selectedView: DoctorViewType = .patients
-    
-    enum DoctorViewType: String, CaseIterable {
-        case timeline = "Timeline"     // NOUVEAU
+    enum ManagementPage: String, CaseIterable {
+        case timeline = "Timeline"
         case patients = "Patients"
         case team = "Team"
-        case create = "Create"
-        case protocols = "Protocoles"  // NOUVEAU
         
         var systemImage: String {
             switch self {
-            case .timeline: return "clock.fill"          // NOUVEAU
+            case .timeline: return "clock.fill"
             case .patients: return "person.2.fill"
             case .team: return "person.3.fill"
-            case .create: return "plus.circle.fill"
-            case .protocols: return "list.bullet.clipboard"  // NOUVEAU
             }
         }
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 0) {
-                // Custom segment control
+                // Navigation menu bar
                 HStack(spacing: 0) {
-                    ForEach(DoctorViewType.allCases, id: \.self) { viewType in
+                    ForEach(ManagementPage.allCases, id: \.self) { page in
                         Button(action: {
                             withAnimation(.spring(response: 0.3)) {
-                                selectedView = viewType
+                                selectedPage = page
                             }
                         }) {
                             VStack(spacing: 6) {
-                                Image(systemName: viewType.systemImage)
+                                Image(systemName: page.systemImage)
                                     .font(.system(size: 20))
-                                Text(viewType.rawValue)
+                                Text(page.rawValue)
                                     .font(.caption)
                                     .fontWeight(.medium)
                             }
-                            .foregroundColor(selectedView == viewType ? .blue : .gray)
+                            .foregroundColor(selectedPage == page ? .blue : .gray)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 12)
                             .background(
-                                selectedView == viewType ?
+                                selectedPage == page ?
                                     Color.blue.opacity(0.1) : Color.clear
                             )
                         }
@@ -64,29 +60,37 @@ struct DoctorMainView: View {
                 .cornerRadius(12)
                 .padding()
                 
-                // Content area
-                TabView(selection: $selectedView) {
-                    DoctorTimelineDashboard()  // NOUVEAU
-                        .tag(DoctorViewType.timeline)
-                    
-                    DoctorPatientsView()
-                        .tag(DoctorViewType.patients)
-                    
-                    DoctorTeamView()
-                        .tag(DoctorViewType.team)
-                    
-                    DoctorCreateTaskView()
-                        .tag(DoctorViewType.create)
-                    
-                    ProtocolsView()  // NOUVEAU
-                        .tag(DoctorViewType.protocols)
+                // Content area - shows selected page
+                Group {
+                    switch selectedPage {
+                    case .timeline:
+                        DoctorTimelineDashboard()
+                    case .patients:
+                        DoctorPatientsView()
+                    case .team:
+                        DoctorTeamView()
+                    }
                 }
-                .tabViewStyle(.page(indexDisplayMode: .never))
             }
-            .navigationTitle("Doctor's Dashboard")
+            .navigationTitle("Management's Dashboard")
             .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Menu {
+                        Button(action: {
+                            showingSettings = true
+                        }) {
+                            Label("Settings", systemImage: "gearshape.fill")
+                        }
+                    } label: {
+                        Image(systemName: "gearshape.fill")
+                    }
+                }
+            }
+            .sheet(isPresented: $showingSettings) {
+                SettingsView(selectedProfile: selectedProfile)
+            }
         }
-        .navigationViewStyle(.stack)
     }
 }
 

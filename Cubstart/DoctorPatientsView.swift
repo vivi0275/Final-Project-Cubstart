@@ -64,7 +64,8 @@ struct DoctorPatientsView: View {
     }
     
     var body: some View {
-        VStack(spacing: 0) {
+        NavigationView {
+            VStack(spacing: 0) {
             // Quick stats
             if !patients.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -187,6 +188,8 @@ struct DoctorPatientsView: View {
                 }
             }
         }
+        .navigationTitle("Patients")
+        .navigationBarTitleDisplayMode(.large)
         .searchable(text: $searchText, prompt: "Search patients...")
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
@@ -202,6 +205,8 @@ struct DoctorPatientsView: View {
         .sheet(item: $selectedPatient) { patient in
             PatientDetailView(patient: patient)
         }
+        }
+        .navigationViewStyle(.stack)
     }
 }
 

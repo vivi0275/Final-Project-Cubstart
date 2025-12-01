@@ -10,8 +10,10 @@ import SwiftData
 import Charts
 
 struct DashboardView: View {
+    @Environment(\.selectedProfile) private var selectedProfile
     @Query private var tasks: [NursingTask]
     @State private var selectedTimeRange: TimeRange = .week
+    @State private var showingSettings = false
     
     enum TimeRange: String, CaseIterable {
         case day = "Day"
@@ -136,6 +138,18 @@ struct DashboardView: View {
             }
             .navigationTitle("Dashboard")
             .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: {
+                        showingSettings = true
+                    }) {
+                        Image(systemName: "gearshape.fill")
+                    }
+                }
+            }
+            .sheet(isPresented: $showingSettings) {
+                SettingsView(selectedProfile: selectedProfile)
+            }
         }
     }
     

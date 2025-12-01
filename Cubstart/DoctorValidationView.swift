@@ -38,10 +38,10 @@ struct DoctorValidationView: View {
                             .foregroundColor(.purple)
                         
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("Validation Requise")
+                            Text("Validation Required")
                                 .font(.headline)
                                 .fontWeight(.bold)
-                            Text("Cette tâche a été complétée par l'infirmière")
+                            Text("This task has been completed by the nurse")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
@@ -54,7 +54,7 @@ struct DoctorValidationView: View {
                     
                     // Task details
                     VStack(alignment: .leading, spacing: 16) {
-                        Text("Détails de la Tâche")
+                        Text("Task Details")
                             .font(.headline)
                             .padding(.horizontal)
                         
@@ -93,7 +93,7 @@ struct DoctorValidationView: View {
                                     Image(systemName: task.priority.systemImage)
                                         .foregroundColor(Color(task.priority.color))
                                         .frame(width: 20)
-                                    Text("Priorité:")
+                                    Text("Priority:")
                                         .foregroundColor(.secondary)
                                     Text(task.priority.rawValue)
                                         .fontWeight(.medium)
@@ -104,7 +104,7 @@ struct DoctorValidationView: View {
                                     Image(systemName: task.category.systemImage)
                                         .foregroundColor(Color(task.category.color))
                                         .frame(width: 20)
-                                    Text("Catégorie:")
+                                    Text("Category:")
                                         .foregroundColor(.secondary)
                                     Text(task.category.rawValue)
                                         .fontWeight(.medium)
@@ -120,7 +120,7 @@ struct DoctorValidationView: View {
                     
                     // Completion info
                     VStack(alignment: .leading, spacing: 16) {
-                        Text("Informations de Complétion")
+                        Text("Completion Information")
                             .font(.headline)
                             .padding(.horizontal)
                         
@@ -154,11 +154,11 @@ struct DoctorValidationView: View {
                                     Image(systemName: "clock.fill")
                                         .foregroundColor(.green)
                                         .frame(width: 20)
-                                    Text("Terminée le:")
+                                    Text("Completed on:")
                                         .foregroundColor(.secondary)
                                     Text(completedAt, style: .date)
                                         .fontWeight(.medium)
-                                    Text("à")
+                                    Text("at")
                                         .foregroundColor(.secondary)
                                     Text(completedAt, style: .time)
                                         .fontWeight(.medium)
@@ -175,7 +175,7 @@ struct DoctorValidationView: View {
                     // Nurse's notes
                     if let notes = task.completedNotes, !notes.isEmpty {
                         VStack(alignment: .leading, spacing: 12) {
-                            Label("Notes de l'Infirmière", systemImage: "note.text")
+                            Label("Nurse's Notes", systemImage: "note.text")
                                 .font(.headline)
                                 .padding(.horizontal)
                             
@@ -186,7 +186,7 @@ struct DoctorValidationView: View {
                                 
                                 HStack {
                                     Spacer()
-                                    Text("— \(staffMember?.name ?? "Infirmière")")
+                                    Text("— \(staffMember?.name ?? "Nurse")")
                                         .font(.caption)
                                         .italic()
                                         .foregroundColor(.secondary)
@@ -205,7 +205,7 @@ struct DoctorValidationView: View {
                     
                     // Doctor's notes input
                     VStack(alignment: .leading, spacing: 12) {
-                        Label("Vos Commentaires (Optionnel)", systemImage: "stethoscope")
+                        Label("Your Comments (Optional)", systemImage: "stethoscope")
                             .font(.headline)
                             .padding(.horizontal)
                         
@@ -221,7 +221,7 @@ struct DoctorValidationView: View {
                                 )
                             
                             if doctorNotes.isEmpty {
-                                Text("Ajoutez vos remarques, félicitations ou recommandations...\n\nExemples:\n• \"Bien effectué, continuez\"\n• \"Attention au dosage la prochaine fois\"\n• \"Surveiller les effets secondaires\"")
+                                Text("Add your remarks, congratulations or recommendations...\n\nExamples:\n• \"Well done, continue\"\n• \"Pay attention to dosage next time\"\n• \"Monitor side effects\"")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                                     .padding(.horizontal, 12)
@@ -239,7 +239,7 @@ struct DoctorValidationView: View {
                         HStack {
                             Image(systemName: "checkmark.seal.fill")
                                 .font(.title3)
-                            Text("Valider la Tâche")
+                            Text("Validate Task")
                                 .fontWeight(.semibold)
                         }
                         .foregroundColor(.white)
@@ -260,26 +260,26 @@ struct DoctorValidationView: View {
                 }
                 .padding(.vertical)
             }
-            .navigationTitle("Validation Tâche")
+            .navigationTitle("Task Validation")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Fermer") {
+                    Button("Close") {
                         dismiss()
                     }
                 }
             }
             .confirmationDialog(
-                "Valider cette tâche ?",
+                "Validate this task?",
                 isPresented: $showingValidationConfirm,
                 titleVisibility: .visible
             ) {
-                Button("Valider") {
+                Button("Validate") {
                     validateTask()
                 }
-                Button("Annuler", role: .cancel) {}
+                Button("Cancel", role: .cancel) {}
             } message: {
-                Text("Confirmer que cette tâche a été correctement effectuée par l'infirmière.")
+                Text("Confirm that this task has been correctly completed by the nurse.")
             }
         }
     }

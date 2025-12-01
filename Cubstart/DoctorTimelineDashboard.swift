@@ -18,11 +18,11 @@ struct DoctorTimelineDashboard: View {
     @State private var selectedTask: NursingTask?
     
     enum TimelineFilter: String, CaseIterable {
-        case all = "Toutes"
-        case pending = "À Faire"
-        case inProgress = "En Cours"
-        case completed = "Terminées"
-        case needsValidation = "À Valider"
+        case all = "All"
+        case pending = "Pending"
+        case inProgress = "In Progress"
+        case completed = "Completed"
+        case needsValidation = "Needs Validation"
         
         var icon: String {
             switch self {
@@ -108,26 +108,27 @@ struct DoctorTimelineDashboard: View {
     }
     
     var body: some View {
-        VStack(spacing: 0) {
+        NavigationView {
+            VStack(spacing: 0) {
             // Quick stats header
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
                     TimelineStatCard(
-                        title: "À Faire",
+                        title: "Pending",
                         count: stats.pending,
                         icon: "clock.badge.exclamationmark",
                         color: .red
                     )
                     
                     TimelineStatCard(
-                        title: "En Cours",
+                        title: "In Progress",
                         count: stats.inProgress,
                         icon: "hourglass",
                         color: .orange
                     )
                     
                     TimelineStatCard(
-                        title: "Terminées",
+                        title: "Completed",
                         count: stats.completed,
                         icon: "checkmark.circle.fill",
                         color: .green
@@ -135,7 +136,7 @@ struct DoctorTimelineDashboard: View {
                     
                     if stats.needsValidation > 0 {
                         TimelineStatCard(
-                            title: "À Valider",
+                            title: "Needs Validation",
                             count: stats.needsValidation,
                             icon: "exclamationmark.circle.fill",
                             color: .purple
@@ -148,7 +149,7 @@ struct DoctorTimelineDashboard: View {
                     
                     if stats.urgent > 0 {
                         TimelineStatCard(
-                            title: "Urgentes",
+                            title: "Urgent",
                             count: stats.urgent,
                             icon: "exclamationmark.triangle.fill",
                             color: .red
@@ -157,7 +158,7 @@ struct DoctorTimelineDashboard: View {
                     
                     if stats.overdue > 0 {
                         TimelineStatCard(
-                            title: "En Retard",
+                            title: "Overdue",
                             count: stats.overdue,
                             icon: "clock.badge.xmark",
                             color: .red
@@ -193,7 +194,7 @@ struct DoctorTimelineDashboard: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 10) {
                         Button(action: { selectedPatientId = nil }) {
-                            Text("Tous les patients")
+                            Text("All Patients")
                                 .font(.caption)
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 6)
@@ -255,6 +256,8 @@ struct DoctorTimelineDashboard: View {
                 }
             }
         }
+        .navigationTitle("Timeline")
+        .navigationBarTitleDisplayMode(.large)
         .sheet(item: $selectedTask) { task in
             if task.needsValidation {
                 DoctorValidationView(task: task)
@@ -262,6 +265,8 @@ struct DoctorTimelineDashboard: View {
                 TaskDetailView(task: task)
             }
         }
+        }
+        .navigationViewStyle(.stack)
     }
     
     private func getCount(for filter: TimelineFilter) -> Int {
@@ -297,15 +302,15 @@ struct DoctorTimelineDashboard: View {
     private func getEmptyMessage() -> String {
         switch selectedFilter {
         case .all:
-            return "Aucune tâche pour le moment"
+            return "No tasks at the moment"
         case .pending:
-            return "Aucune tâche en attente\nToutes les tâches sont assignées !"
+            return "No pending tasks\nAll tasks are assigned!"
         case .inProgress:
-            return "Aucune tâche en cours\nTout est calme pour l'instant"
+            return "No tasks in progress\nEverything is quiet for now"
         case .completed:
-            return "Aucune tâche terminée aujourd'hui"
+            return "No tasks completed today"
         case .needsValidation:
-            return "Aucune tâche à valider\nTout est validé ! 🎉"
+            return "No tasks to validate\nEverything is validated! 🎉"
         }
     }
 }
@@ -470,7 +475,7 @@ struct TimelineTaskCard: View {
                     HStack(spacing: 6) {
                         Image(systemName: "exclamationmark.circle.fill")
                             .font(.caption)
-                        Text("Nécessite votre validation")
+                        Text("Requires your validation")
                             .font(.caption)
                             .fontWeight(.medium)
                     }

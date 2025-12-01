@@ -13,13 +13,28 @@ import FirebaseCore
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
-        print("🔥 [AppDelegate] Configuring Firebase...")
-        FirebaseApp.configure()
+        print("🔥 [AppDelegate] Attempting to configure Firebase...")
         
-        if FirebaseApp.app() != nil {
-            print("✅ [AppDelegate] Firebase configured successfully!")
-        } else {
-            print("❌ [AppDelegate] Error: Firebase could not be configured!")
+        // Vérifier si le fichier GoogleService-Info.plist existe
+        guard let path = Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist"),
+              FileManager.default.fileExists(atPath: path) else {
+            print("⚠️ [AppDelegate] GoogleService-Info.plist not found. Firebase will be disabled.")
+            print("⚠️ [AppDelegate] Application will continue without Firebase synchronization.")
+            return true
+        }
+        
+        // Configurer Firebase seulement si le fichier existe
+        do {
+            FirebaseApp.configure()
+            
+            if FirebaseApp.app() != nil {
+                print("✅ [AppDelegate] Firebase configured successfully!")
+            } else {
+                print("❌ [AppDelegate] Error: Firebase could not be configured!")
+            }
+        } catch {
+            print("❌ [AppDelegate] Firebase configuration error: \(error.localizedDescription)")
+            print("⚠️ [AppDelegate] Application will continue without Firebase.")
         }
         
         return true
@@ -70,32 +85,33 @@ struct CubstartApp: App {
     
     var body: some Scene {
         WindowGroup {
-            MainTabView()
+            RootView()
                 .environment(\.modelContext, sharedModelContainer.mainContext)
                 .onAppear {
-                    print("🚀 [CubstartApp] Application started, initializing Firestore synchronization...")
+                    print("🚀 [CubstartApp] Application started")
                     
                     // Check that Firebase is initialized
-                    if FirebaseApp.app() == nil {
-                        print("❌ [CubstartApp] Firebase is not initialized! Synchronization will not work.")
-                        return
-                    }
-                    
-                    print("✅ [CubstartApp] Firebase is initialized")
-                    
-                    // Start Firestore synchronization at app startup
-                    let modelContext = sharedModelContainer.mainContext
-                    print("🔄 [CubstartApp] Starting Firestore listener...")
-                    TaskSyncService.shared.startSyncing(modelContext: modelContext)
-                    
-                    // Sync all local tasks to Firestore at startup
-                    Task {
-                        print("🔄 [CubstartApp] Initial task synchronization...")
-                        await TaskSyncService.shared.syncAllToFirestore(modelContext: modelContext)
+                    if FirebaseApp.app() != nil {
+                        print("✅ [CubstartApp] Firebase is initialized, starting Firestore synchronization...")
+                        
+                        // Start Firestore synchronization at app startup
+                        let modelContext = sharedModelContainer.mainContext
+                        print("🔄 [CubstartApp] Starting Firestore listener...")
+                        TaskSyncService.shared.startSyncing(modelContext: modelContext)
+                        
+                        // Sync all local tasks to Firestore at startup
+                        Task {
+                            print("🔄 [CubstartApp] Initial task synchronization...")
+                            await TaskSyncService.shared.syncAllToFirestore(modelContext: modelContext)
+                        }
+                    } else {
+                        print("⚠️ [CubstartApp] Firebase is not initialized. Running in local mode only.")
+                        print("⚠️ [CubstartApp] To enable Firebase, add GoogleService-Info.plist to your project.")
                     }
                     
                     // Add some sample patients for testing (only in development)
                     #if DEBUG
+                    let modelContext = sharedModelContainer.mainContext
                     addSamplePatientsIfNeeded(modelContext: modelContext)
                     #endif
                 }

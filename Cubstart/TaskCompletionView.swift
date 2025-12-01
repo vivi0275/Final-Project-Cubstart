@@ -21,12 +21,12 @@ struct TaskCompletionView: View {
     
     // Predefined quick notes
     let quickNotes = [
-        "Tâche accomplie sans problème",
-        "Patient coopératif",
-        "Patient agité - à surveiller",
-        "Dosage ajusté selon protocole",
-        "Besoin suivi médecin",
-        "RAS - Tout s'est bien passé"
+        "Task completed without issues",
+        "Cooperative patient",
+        "Agitated patient - monitor",
+        "Dosage adjusted per protocol",
+        "Needs doctor follow-up",
+        "NED - Everything went well"
     ]
     
     var body: some View {
@@ -35,7 +35,7 @@ struct TaskCompletionView: View {
                 VStack(alignment: .leading, spacing: 24) {
                     // Task Info Header
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Compléter la tâche")
+                        Text("Complete Task")
                             .font(.title2)
                             .fontWeight(.bold)
                         
@@ -73,7 +73,7 @@ struct TaskCompletionView: View {
                     
                     // Quick notes buttons
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Notes Rapides")
+                        Text("Quick Notes")
                             .font(.headline)
                             .padding(.horizontal)
                         
@@ -103,7 +103,7 @@ struct TaskCompletionView: View {
                     
                     // Notes text editor
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Commentaires & Observations")
+                        Text("Comments & Observations")
                             .font(.headline)
                             .padding(.horizontal)
                         
@@ -119,7 +119,7 @@ struct TaskCompletionView: View {
                                 )
                             
                             if completionNotes.isEmpty {
-                                Text("Entrez vos observations sur cette tâche...\n\nExemples:\n• État du patient\n• Difficultés rencontrées\n• Points d'attention\n• Recommandations")
+                                Text("Enter your observations on this task...\n\nExamples:\n• Patient condition\n• Difficulties encountered\n• Points of attention\n• Recommendations")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                                     .padding(.horizontal, 12)
@@ -129,7 +129,7 @@ struct TaskCompletionView: View {
                         }
                         .padding(.horizontal)
                         
-                        Text("\(completionNotes.count) caractères")
+                        Text("\(completionNotes.count) characters")
                             .font(.caption2)
                             .foregroundColor(.secondary)
                             .padding(.horizontal)
@@ -141,10 +141,10 @@ struct TaskCompletionView: View {
                             .foregroundColor(.blue)
                         
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("Vos notes seront visibles par le médecin")
+                            Text("Your notes will be visible to the doctor")
                                 .font(.caption)
                                 .fontWeight(.semibold)
-                            Text("Soyez précis et professionnel")
+                            Text("Be precise and professional")
                                 .font(.caption2)
                                 .foregroundColor(.secondary)
                         }
@@ -161,7 +161,7 @@ struct TaskCompletionView: View {
                         HStack {
                             Image(systemName: "checkmark.circle.fill")
                                 .font(.title3)
-                            Text("Marquer comme Terminée")
+                            Text("Mark as Completed")
                                 .fontWeight(.semibold)
                         }
                         .foregroundColor(.white)
@@ -176,21 +176,21 @@ struct TaskCompletionView: View {
                 }
                 .padding(.vertical)
             }
-            .navigationTitle("Validation Tâche")
+            .navigationTitle("Task Validation")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Annuler") {
+                    Button("Cancel") {
                         dismiss()
                     }
                 }
             }
-            .alert("Tâche Complétée !", isPresented: $showingSuccess) {
+            .alert("Task Completed!", isPresented: $showingSuccess) {
                 Button("OK") {
                     dismiss()
                 }
             } message: {
-                Text("La tâche a été marquée comme terminée. Le médecin verra vos commentaires.")
+                Text("The task has been marked as completed. The doctor will see your comments.")
             }
         }
     }
@@ -219,8 +219,8 @@ struct TaskCompletionView: View {
 // Preview with mock task
 #Preview {
     let task = NursingTask(
-        title: "Vérifier les signes vitaux",
-        description: "Mesurer TA, FC, température et SpO2",
+        title: "Check Vital Signs",
+        description: "Measure BP, HR, temperature and SpO2",
         priority: .important,
         category: .patientCare,
         patientId: "P-001"
